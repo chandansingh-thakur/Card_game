@@ -1,13 +1,29 @@
 let audioContext = null;
 
-let currentSpeech = null;
+const cardSounds = [
+  "/sounds/card-deal-1.mp3",
+  "/sounds/card-deal-2.mp3",
+  "/sounds/card-deal-3.mp3",
+  "/sounds/card-deal-4.mp3",
+];
+
+const cardAudioPool = cardSounds.map((src) => {
+  const audio = new Audio(src);
+  audio.preload = "auto";
+  audio.volume = 0.72;
+  return audio;
+});
+
+let cardSoundIndex = 0;
+
+let shuffleAudio = null;
 
 
 /* =========================
    AUDIO CONTEXT
 ========================= */
 
-function getAudioContext() {
+const getAudioContext = () => {
   if (!audioContext) {
     audioContext = new (
       window.AudioContext ||
@@ -20,414 +36,481 @@ function getAudioContext() {
   }
 
   return audioContext;
-}
+};
 
 
-/* =========================
-   UNLOCK AUDIO
-========================= */
+export const unlockAudio = () => {
 
-export function unlockAudio() {
   try {
     getAudioContext();
+
+    cardAudioPool.forEach((audio) => {
+      audio.load();
+    });
+
   } catch (error) {
-    console.log("Audio unavailable");
-  }
-}
-
-
-/* =========================
-   STOP ALL SPEECH
-========================= */
-
-export function stopAllSounds() {
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
+    console.log("Audio unlock failed");
   }
 
-  currentSpeech = null;
-}
+};
 
 
 /* =========================
    FEMALE AI VOICE
 ========================= */
 
-export function speak(text) {
+const findFemaleVoice = () => {
 
   if (!("speechSynthesis" in window)) {
-    return Promise.resolve();
+    return null;
   }
 
-  window.speechSynthesis.cancel();
+  const voices =
+    window.speechSynthesis.getVoices();
+
+  const preferredNames = [
+    "zira",
+    "samantha",
+    "aria",
+    "jenny",
+    "hazel",
+    "sara",
+    "female",
+    "woman",
+  ];
+
+  const femaleVoice =
+    voices.find((voice) => {
+
+      const name =
+        `${voice.name} ${voice.voiceURI}`
+          .toLowerCase();
+
+      return preferredNames.some(
+        (word) =>
+          name.includes(word)
+      );
+
+    });
+
+  if (femaleVoice) {
+    return femaleVoice;
+  }
+
+  return (
+    voices.find((voice) =>
+      voice.lang
+        ?.toLowerCase()
+        .startsWith("en")
+    ) ||
+    voices[0] ||
+    null
+  );
+
+};
+
+
+/* =========================
+   SPEAK
+========================= */
+
+export const speak = (
+  text,
+  options = {}
+) => {
 
   return new Promise((resolve) => {
+
+    if (!("speechSynthesis" in window)) {
+      resolve();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
 
     const utterance =
       new SpeechSynthesisUtterance(text);
 
-    currentSpeech = utterance;
+    const voice =
+      findFemaleVoice();
 
-    utterance.rate = 0.88;
-    utterance.pitch = 1.18;
-    utterance.volume = 1;
-
-
-    const chooseVoice = () => {
-
-      const voices =
-        window.speechSynthesis.getVoices();
-
-      const femaleVoice =
-        voices.find((voice) =>
-          /Zira|Jenny|Samantha|Karen|Victoria|Female/i.test(
-            voice.name
-          )
-        );
-
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
-    };
-
-
-    chooseVoice();
-
-
-    if (
-      "onvoiceschanged" in
-      window.speechSynthesis
-    ) {
-      window.speechSynthesis.onvoiceschanged =
-        chooseVoice;
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = "en-US";
     }
 
+    utterance.rate =
+      options.rate ?? 0.86;
+
+    utterance.pitch =
+      options.pitch ?? 1.12;
+
+    utterance.volume = 1;
 
     utterance.onend = () => {
-
-      window.speechSynthesis.onvoiceschanged =
-        null;
-
-      currentSpeech = null;
-
       resolve();
     };
-
 
     utterance.onerror = () => {
-
-      window.speechSynthesis.onvoiceschanged =
-        null;
-
-      currentSpeech = null;
-
       resolve();
     };
-
 
     window.speechSynthesis.speak(
       utterance
     );
 
   });
-}
+
+};
 
 
 /* =========================
-   CARD SOUND
+   BUTTON SOUND
 ========================= */
 
-export function playCardSound() {
+export const playClickSound = () => {
 
-  const ctx = getAudioContext();
+  try {
 
-  const duration = 0.16;
+    const ctx =
+      getAudioContext();
 
-  const buffer =
-    ctx.createBuffer(
-      1,
-      ctx.sampleRate * duration,
-      ctx.sampleRate
+    const oscillator =
+      ctx.createOscillator();
+
+    const gain =
+      ctx.createGain();
+
+    oscillator.type = "sine";
+
+    oscillator.frequency.setValueAtTime(
+      650,
+      ctx.currentTime
     );
 
-  const data =
-    buffer.getChannelData(0);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      900,
+      ctx.currentTime + 0.06
+    );
+
+    gain.gain.setValueAtTime(
+      0.07,
+      ctx.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      ctx.currentTime + 0.08
+    );
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start();
+
+    oscillator.stop(
+      ctx.currentTime + 0.08
+    );
+
+  } catch (error) {}
+
+};
 
 
-  for (
-    let i = 0;
-    i < data.length;
-    i++
-  ) {
+/* =========================
+   REAL CARD THROW SOUND
+========================= */
 
-    data[i] =
-      (Math.random() * 2 - 1) *
-      Math.pow(
-        1 - i / data.length,
-        2
-      );
+export const playCardSound = () => {
 
+  try {
+
+    const audio =
+      cardAudioPool[
+        cardSoundIndex
+      ];
+
+    cardSoundIndex =
+      (cardSoundIndex + 1) %
+      cardAudioPool.length;
+
+    /*
+      Restart the short card sound
+      from the beginning.
+    */
+
+    audio.pause();
+
+    audio.currentTime = 0;
+
+    audio.volume = 0.72;
+
+    const promise =
+      audio.play();
+
+    if (promise) {
+      promise.catch(() => {});
+    }
+
+  } catch (error) {
+    console.log(
+      "Card sound error:",
+      error
+    );
   }
 
-
-  const source =
-    ctx.createBufferSource();
-
-  const filter =
-    ctx.createBiquadFilter();
-
-  const gain =
-    ctx.createGain();
-
-
-  filter.type = "bandpass";
-  filter.frequency.value = 1800;
-  filter.Q.value = 0.8;
-
-
-  gain.gain.setValueAtTime(
-    0.16,
-    ctx.currentTime
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    ctx.currentTime + duration
-  );
-
-
-  source.buffer = buffer;
-
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-
-
-  source.start();
-}
+};
 
 
 /* =========================
    SHUFFLE SOUND
 ========================= */
 
-export function playShuffleSound() {
+export const playShuffleSound = () => {
 
-  const ctx = getAudioContext();
+  stopShuffleSound();
 
-  const now = ctx.currentTime;
+  try {
+
+    /*
+      Shuffle is intentionally
+      separate from card-throw sound.
+    */
+
+    const ctx =
+      getAudioContext();
+
+    const duration = 2.8;
+
+    const buffer =
+      ctx.createBuffer(
+        1,
+        ctx.sampleRate *
+          duration,
+        ctx.sampleRate
+      );
+
+    const data =
+      buffer.getChannelData(0);
+
+    for (
+      let i = 0;
+      i < data.length;
+      i++
+    ) {
+
+      const fade =
+        1 -
+        i /
+          data.length;
+
+      data[i] =
+        (Math.random() * 2 - 1) *
+        fade;
+
+    }
+
+    shuffleAudio =
+      ctx.createBufferSource();
+
+    const gain =
+      ctx.createGain();
+
+    shuffleAudio.buffer =
+      buffer;
+
+    gain.gain.value =
+      0.035;
+
+    shuffleAudio.connect(gain);
+
+    gain.connect(
+      ctx.destination
+    );
+
+    shuffleAudio.start();
+
+  } catch (error) {}
+
+};
 
 
-  for (let i = 0; i < 14; i++) {
+/* =========================
+   STOP SHUFFLE
+========================= */
 
-    const osc =
+export const stopShuffleSound = () => {
+
+  try {
+
+    if (shuffleAudio) {
+
+      shuffleAudio.stop();
+
+      shuffleAudio.disconnect();
+
+      shuffleAudio = null;
+
+    }
+
+  } catch (error) {
+
+    shuffleAudio = null;
+
+  }
+
+};
+
+
+/* =========================
+   WIN
+========================= */
+
+export const playWinSound = () => {
+
+  try {
+
+    const ctx =
+      getAudioContext();
+
+    [523, 659, 784, 1046]
+      .forEach(
+        (frequency, index) => {
+
+          const oscillator =
+            ctx.createOscillator();
+
+          const gain =
+            ctx.createGain();
+
+          const start =
+            ctx.currentTime +
+            index * 0.11;
+
+          oscillator.type =
+            "sine";
+
+          oscillator.frequency.value =
+            frequency;
+
+          gain.gain.setValueAtTime(
+            0.001,
+            start
+          );
+
+          gain.gain.exponentialRampToValueAtTime(
+            0.1,
+            start + 0.02
+          );
+
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            start + 0.25
+          );
+
+          oscillator.connect(gain);
+
+          gain.connect(
+            ctx.destination
+          );
+
+          oscillator.start(start);
+
+          oscillator.stop(
+            start + 0.27
+          );
+
+        }
+      );
+
+  } catch (error) {}
+
+};
+
+
+/* =========================
+   LOSE
+========================= */
+
+export const playLoseSound = () => {
+
+  try {
+
+    const ctx =
+      getAudioContext();
+
+    const oscillator =
       ctx.createOscillator();
 
     const gain =
       ctx.createGain();
 
-    const start =
-      now + i * 0.075;
+    oscillator.type =
+      "sawtooth";
 
-
-    osc.type = "triangle";
-
-    osc.frequency.setValueAtTime(
-      150 + Math.random() * 180,
-      start
+    oscillator.frequency.setValueAtTime(
+      230,
+      ctx.currentTime
     );
 
+    oscillator.frequency.exponentialRampToValueAtTime(
+      100,
+      ctx.currentTime + 0.45
+    );
 
     gain.gain.setValueAtTime(
-      0,
-      start
-    );
-
-    gain.gain.linearRampToValueAtTime(
-      0.045,
-      start + 0.018
+      0.08,
+      ctx.currentTime
     );
 
     gain.gain.exponentialRampToValueAtTime(
       0.001,
-      start + 0.085
+      ctx.currentTime + 0.5
     );
 
+    oscillator.connect(gain);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(
+      ctx.destination
+    );
 
+    oscillator.start();
 
-    osc.start(start);
+    oscillator.stop(
+      ctx.currentTime + 0.5
+    );
 
-    osc.stop(start + 0.09);
-  }
-}
+  } catch (error) {}
 
-
-/* =========================
-   CLICK SOUND
-========================= */
-
-export function playClickSound() {
-
-  const ctx = getAudioContext();
-
-  const osc =
-    ctx.createOscillator();
-
-  const gain =
-    ctx.createGain();
-
-
-  osc.type = "sine";
-
-  osc.frequency.setValueAtTime(
-    520,
-    ctx.currentTime
-  );
-
-  osc.frequency.exponentialRampToValueAtTime(
-    700,
-    ctx.currentTime + 0.07
-  );
-
-
-  gain.gain.setValueAtTime(
-    0.07,
-    ctx.currentTime
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    ctx.currentTime + 0.08
-  );
-
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-
-  osc.start();
-
-  osc.stop(
-    ctx.currentTime + 0.08
-  );
-}
+};
 
 
 /* =========================
-   WIN SOUND
+   STOP EVERYTHING
 ========================= */
 
-export function playWinSound() {
+export const stopAllSounds = () => {
 
-  const ctx = getAudioContext();
+  try {
 
-  const notes = [
-    523.25,
-    659.25,
-    783.99,
-    1046.5,
-  ];
-
-
-  notes.forEach(
-    (frequency, index) => {
-
-      const osc =
-        ctx.createOscillator();
-
-      const gain =
-        ctx.createGain();
-
-      const start =
-        ctx.currentTime +
-        index * 0.12;
-
-
-      osc.type = "sine";
-
-      osc.frequency.value =
-        frequency;
-
-
-      gain.gain.setValueAtTime(
-        0,
-        start
-      );
-
-      gain.gain.linearRampToValueAtTime(
-        0.12,
-        start + 0.03
-      );
-
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        start + 0.35
-      );
-
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-
-      osc.start(start);
-
-      osc.stop(start + 0.36);
-
+    if (
+      "speechSynthesis" in
+      window
+    ) {
+      window.speechSynthesis.cancel();
     }
-  );
-}
 
+    stopShuffleSound();
 
-/* =========================
-   LOSE SOUND
-========================= */
+    cardAudioPool.forEach(
+      (audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    );
 
-export function playLoseSound() {
+  } catch (error) {}
 
-  const ctx = getAudioContext();
-
-  const osc =
-    ctx.createOscillator();
-
-  const gain =
-    ctx.createGain();
-
-
-  osc.type = "sawtooth";
-
-
-  osc.frequency.setValueAtTime(
-    180,
-    ctx.currentTime
-  );
-
-  osc.frequency.exponentialRampToValueAtTime(
-    75,
-    ctx.currentTime + 0.55
-  );
-
-
-  gain.gain.setValueAtTime(
-    0.07,
-    ctx.currentTime
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    ctx.currentTime + 0.55
-  );
-
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-
-  osc.start();
-
-  osc.stop(
-    ctx.currentTime + 0.56
-  );
-}
+};

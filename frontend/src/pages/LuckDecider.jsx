@@ -1,18 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Bot,
   Check,
   Coins,
-  Crown,
   RotateCcw,
   Shuffle,
   Trophy,
   User,
-  XCircle,
+  Bot,
   Volume2,
+  XCircle,
   Sparkles,
+  History,
 } from "lucide-react";
 
 import {
@@ -21,6 +21,7 @@ import {
   stopAllSounds,
   playCardSound,
   playShuffleSound,
+  stopShuffleSound,
   playClickSound,
   playWinSound,
   playLoseSound,
@@ -30,11 +31,28 @@ import "./LuckDecider.css";
 
 
 const SUITS = [
-  { symbol: "♠", name: "Hukum", color: "black" },
-  { symbol: "♥", name: "Paan", color: "red" },
-  { symbol: "♦", name: "Eent", color: "red" },
-  { symbol: "♣", name: "Chidi", color: "black" },
+  {
+    symbol: "♠",
+    name: "Spades",
+    color: "black",
+  },
+  {
+    symbol: "♥",
+    name: "Hearts",
+    color: "red",
+  },
+  {
+    symbol: "♦",
+    name: "Diamonds",
+    color: "red",
+  },
+  {
+    symbol: "♣",
+    name: "Clubs",
+    color: "black",
+  },
 ];
+
 
 const RANKS = [
   "A",
@@ -52,150 +70,255 @@ const RANKS = [
   "K",
 ];
 
-const STARTING_COINS = 10000;
 
+const createDeck = () => {
 
-function createDeck() {
   return SUITS.flatMap((suit) =>
     RANKS.map((rank) => ({
-      id: `${rank}-${suit.symbol}`,
+      id:
+        `${rank}-${suit.symbol}`,
       rank,
       suit: suit.symbol,
       suitName: suit.name,
       color: suit.color,
     }))
   );
-}
+
+};
 
 
-function shuffleDeck(deck) {
-  const result = [...deck];
+const shuffleDeck = (cards) => {
 
-  for (let i = result.length - 1; i > 0; i--) {
-    const random = Math.floor(Math.random() * (i + 1));
+  const result = [...cards];
 
-    [result[i], result[random]] = [
-      result[random],
+  for (
+    let i = result.length - 1;
+    i > 0;
+    i--
+  ) {
+
+    const j =
+      Math.floor(
+        Math.random() * (i + 1)
+      );
+
+    [
+      result[i],
+      result[j],
+    ] = [
+      result[j],
       result[i],
     ];
+
   }
 
   return result;
-}
+
+};
 
 
-function wait(ms) {
-  return new Promise((resolve) =>
-    setTimeout(resolve, ms)
+const wait = (ms) =>
+  new Promise(
+    (resolve) =>
+      setTimeout(
+        resolve,
+        ms
+      )
   );
-}
 
 
 function LuckDecider() {
 
   const [coins, setCoins] =
-    useState(STARTING_COINS);
+    useState(() => {
 
-  const [selectedRank, setSelectedRank] =
-    useState("3");
+      const saved =
+        localStorage.getItem(
+          "luckDeciderCoins"
+        );
 
-  const [selectedSuit, setSelectedSuit] =
-    useState("♠");
+      return saved
+        ? Number(saved)
+        : 10000;
 
-  const [selectedCard, setSelectedCard] =
-    useState(null);
+    });
+
+
+  const [
+    selectedRank,
+    setSelectedRank,
+  ] = useState("3");
+
+
+  const [
+    selectedSuit,
+    setSelectedSuit,
+  ] = useState("♠");
+
+
+  const [
+    selectedCard,
+    setSelectedCard,
+  ] = useState(null);
+
 
   const [bet, setBet] =
     useState(100);
 
-  const [gameState, setGameState] =
-    useState("selection");
+
+  const [
+    gameState,
+    setGameState,
+  ] = useState("selection");
+
 
   const [deck, setDeck] =
     useState([]);
 
-  const [dealIndex, setDealIndex] =
-    useState(0);
 
-  const [aiCards, setAiCards] =
-    useState([]);
+  const [
+    dealIndex,
+    setDealIndex,
+  ] = useState(0);
 
-  const [playerCards, setPlayerCards] =
-    useState([]);
 
-  const [currentCard, setCurrentCard] =
-    useState(null);
+  const [
+    aiCards,
+    setAiCards,
+  ] = useState([]);
 
-  const [currentSide, setCurrentSide] =
-    useState(null);
+
+  const [
+    playerCards,
+    setPlayerCards,
+  ] = useState([]);
+
+
+  const [
+    currentCard,
+    setCurrentCard,
+  ] = useState(null);
+
+
+  const [
+    currentSide,
+    setCurrentSide,
+  ] = useState(null);
+
 
   const [winner, setWinner] =
     useState(null);
+
 
   const [message, setMessage] =
     useState(
       "Choose your card and trust your luck."
     );
 
-  const [dealerTalking, setDealerTalking] =
-    useState(false);
+
+  const [
+    dealerTalking,
+    setDealerTalking,
+  ] = useState(false);
+
 
   const [soundOn, setSoundOn] =
     useState(true);
 
-  const [isDealing, setIsDealing] =
-    useState(false);
 
-  const dealTimer =
+  const [
+    shufflePhase,
+    setShufflePhase,
+  ] = useState(0);
+
+
+  /* =========================
+     ROUND HISTORY
+  ========================= */
+
+  const [
+    roundHistory,
+    setRoundHistory,
+  ] = useState(() => {
+
+    try {
+
+      const saved =
+        localStorage.getItem(
+          "luckDeciderHistory"
+        );
+
+      return saved
+        ? JSON.parse(saved)
+        : [];
+
+    } catch {
+
+      return [];
+
+    }
+
+  });
+
+
+  const timerRef =
     useRef(null);
 
-  const selectedCardPreview =
-    useMemo(
-      () => ({
-        rank: selectedRank,
-        suit: selectedSuit,
-        id: `${selectedRank}-${selectedSuit}`,
-      }),
-      [selectedRank, selectedSuit]
-    );
+
+  const mountedRef =
+    useRef(true);
 
 
-  /*
-   * DEALER VOICE
-   */
-
-  const dealerSpeak = async (text) => {
-
-    if (!soundOn) return;
-
-    setDealerTalking(true);
-
-    await speak(text);
-
-    setDealerTalking(false);
-  };
-
-
-  /*
-   * WELCOME
-   */
+  /* =========================
+     SAVE COINS
+  ========================= */
 
   useEffect(() => {
 
-    const timer = setTimeout(() => {
+    localStorage.setItem(
+      "luckDeciderCoins",
+      String(coins)
+    );
 
-      dealerSpeak(
-        "Welcome to Luck Decider. Choose your card and place your bet. I will deal the cards one by one."
-      );
+  }, [coins]);
 
-    }, 900);
+
+  /* =========================
+     SAVE HISTORY
+  ========================= */
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      "luckDeciderHistory",
+      JSON.stringify(
+        roundHistory
+      )
+    );
+
+  }, [roundHistory]);
+
+
+  /* =========================
+     CLEANUP
+  ========================= */
+
+  useEffect(() => {
+
+    mountedRef.current =
+      true;
 
     return () => {
 
-      clearTimeout(timer);
+      mountedRef.current =
+        false;
 
-      if (dealTimer.current) {
-        clearTimeout(dealTimer.current);
+      if (timerRef.current) {
+
+        clearTimeout(
+          timerRef.current
+        );
+
       }
 
       stopAllSounds();
@@ -205,31 +328,105 @@ function LuckDecider() {
   }, []);
 
 
-  /*
-   * SELECT SUIT
-   */
+  /* =========================
+     AI VOICE
+  ========================= */
 
-  const chooseSuit = (suit) => {
+  const dealerSpeak = async (
+    text,
+    options = {}
+  ) => {
+
+    if (!soundOn) {
+      return;
+    }
+
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setDealerTalking(true);
+
+    await speak(
+      text,
+      options
+    );
+
+    if (
+      mountedRef.current
+    ) {
+
+      setDealerTalking(
+        false
+      );
+
+    }
+
+  };
+
+
+  /* =========================
+     WELCOME
+  ========================= */
+
+  useEffect(() => {
+
+    const timer =
+      setTimeout(() => {
+
+        dealerSpeak(
+          "Welcome to Luck Decider. Choose your card and place your bet.",
+          {
+            rate: 0.86,
+            pitch: 1.12,
+          }
+        );
+
+      }, 400);
+
+    return () =>
+      clearTimeout(timer);
+
+  }, []);
+
+
+  /* =========================
+     SELECT RANK
+  ========================= */
+
+  const selectRank = (rank) => {
 
     unlockAudio();
 
     playClickSound();
 
-    setSelectedSuit(suit.symbol);
+    setSelectedRank(rank);
 
-    if (soundOn) {
-      dealerSpeak(
-        `${suit.name} selected.`
-      );
-    }
   };
 
 
-  /*
-   * CONFIRM CARD
-   */
+  /* =========================
+     SELECT SUIT
+  ========================= */
 
-  const confirmSelection = async () => {
+  const selectSuit = (suit) => {
+
+    unlockAudio();
+
+    playClickSound();
+
+    setSelectedSuit(
+      suit.symbol
+    );
+
+  };
+
+
+  /* =========================
+     LOCK CARD
+  ========================= */
+
+  const lockCard = async () => {
 
     unlockAudio();
 
@@ -238,50 +435,66 @@ function LuckDecider() {
     const suit =
       SUITS.find(
         (item) =>
-          item.symbol === selectedSuit
+          item.symbol ===
+          selectedSuit
       );
 
     const card = {
-      ...selectedCardPreview,
-      suitName: suit?.name,
+      id:
+        `${selectedRank}-${selectedSuit}`,
+      rank: selectedRank,
+      suit: selectedSuit,
+      suitName: suit.name,
+      color: suit.color,
     };
 
     setSelectedCard(card);
 
-    setGameState("betting");
+    setGameState(
+      "betting"
+    );
 
     setMessage(
-      `You selected ${card.rank} of ${suit?.name}.`
+      `${selectedRank} of ${suit.name} selected.`
     );
 
     await dealerSpeak(
-      `Good choice. You selected ${card.rank} of ${suit?.name}. Now place your bet.`
+      `You selected ${selectedRank} of ${suit.name}. Place your bet when you are ready.`,
+      {
+        rate: 0.86,
+      }
     );
+
   };
 
 
-  /*
-   * START GAME
-   */
+  /* =========================
+     START GAME
+  ========================= */
 
   const startGame = async () => {
 
     unlockAudio();
 
-    if (!selectedCard) return;
+    if (!selectedCard) {
+      return;
+    }
+
 
     if (!bet || bet <= 0) {
 
       setMessage(
-        "Enter a valid bet first."
+        "Please enter a valid bet."
       );
 
       await dealerSpeak(
-        "Please enter a valid bet first."
+        "Please enter a valid bet."
       );
 
       return;
+
     }
+
 
     if (bet > coins) {
 
@@ -290,46 +503,16 @@ function LuckDecider() {
       );
 
       await dealerSpeak(
-        "You do not have enough coins for this bet."
+        "You do not have enough coins."
       );
 
       return;
+
     }
+
 
     playClickSound();
 
-    setGameState("shuffling");
-
-    setMessage(
-      "The dealer is preparing the deck..."
-    );
-
-    await dealerSpeak(
-      "Your bet is locked. Watch closely. I am shuffling the deck."
-    );
-
-    /*
-     * SHUFFLE
-     */
-
-    playShuffleSound();
-
-    setMessage(
-      "Shuffling the 52 card deck..."
-    );
-
-    await wait(1500);
-
-    /*
-     * NEW DECK
-     */
-
-    const newDeck =
-      shuffleDeck(createDeck());
-
-    setDeck(newDeck);
-
-    setDealIndex(0);
 
     setAiCards([]);
 
@@ -341,161 +524,391 @@ function LuckDecider() {
 
     setWinner(null);
 
-    setMessage(
-      "The deck is ready. Let the deal begin."
+    setDealIndex(0);
+
+
+    const newDeck =
+      shuffleDeck(
+        createDeck()
+      );
+
+    setDeck(newDeck);
+
+
+    setGameState(
+      "shuffling"
     );
+
+    setShufflePhase(1);
+
+    setMessage(
+      "Your bet is locked."
+    );
+
+
+    /* =========================
+       AI SHUFFLE VOICE
+    ========================= */
+
+    if (soundOn) {
+
+      setDealerTalking(
+        true
+      );
+
+      await speak(
+        "Your bet is locked. I'm shuffling the deck now.",
+        {
+          rate: 0.84,
+          pitch: 1.12,
+        }
+      );
+
+      if (
+        !mountedRef.current
+      ) {
+        return;
+      }
+
+      setDealerTalking(
+        false
+      );
+
+    }
+
+
+    /* =========================
+       ACTUAL SHUFFLE
+    ========================= */
+
+    setMessage(
+      "Shuffling all 52 cards..."
+    );
+
+    setShufflePhase(2);
+
+    playShuffleSound();
+
+
+    await wait(2800);
+
+
+    if (
+      !mountedRef.current
+    ) {
+      return;
+    }
+
+
+    stopShuffleSound();
+
+    setShufflePhase(3);
+
+    setMessage(
+      "The deck is ready."
+    );
+
+
+    await dealerSpeak(
+      "The deck is ready. Let's begin.",
+      {
+        rate: 0.9,
+      }
+    );
+
+
+    if (
+      !mountedRef.current
+    ) {
+      return;
+    }
+
 
     await wait(400);
 
-    setGameState("dealing");
 
-    await dealerSpeak(
-      "The deck is ready. Let's see where your card lands."
+    setGameState(
+      "dealing"
     );
+
   };
 
 
-  /*
-   * DEAL ONE CARD
-   */
+  /* =========================
+     DEAL ENGINE
+  ========================= */
 
   useEffect(() => {
 
-    if (gameState !== "dealing") {
+    if (
+      gameState !==
+      "dealing"
+    ) {
       return;
     }
 
-    if (dealIndex >= deck.length) {
+
+    if (!deck.length) {
       return;
     }
 
-    if (isDealing) {
+
+    if (
+      dealIndex >=
+      deck.length
+    ) {
       return;
     }
 
-    setIsDealing(true);
 
-    const timer = setTimeout(async () => {
+    const card =
+      deck[dealIndex];
 
-      const card =
-        deck[dealIndex];
 
-      const side =
-        dealIndex % 2 === 0
-          ? "ai"
-          : "player";
+    const side =
+      dealIndex % 2 === 0
+        ? "ai"
+        : "player";
 
-      /*
-       * CARD IS IN DEAL ANIMATION
-       */
 
-      setCurrentCard(card);
+    setCurrentCard(card);
 
-      setCurrentSide(side);
+    setCurrentSide(side);
 
-      playCardSound();
 
-      await wait(650);
+    /* REAL CARD SOUND */
 
-      /*
-       * LAND CARD
-       */
+    playCardSound();
 
-      if (side === "ai") {
 
-        setAiCards((current) => [
-          ...current,
-          card,
-        ]);
+    setMessage(
+      side === "ai"
+        ? "AI receives a card."
+        : "You receive a card."
+    );
 
-      } else {
 
-        setPlayerCards((current) => [
-          ...current,
-          card,
-        ]);
+    timerRef.current =
+      setTimeout(() => {
 
-      }
+        if (
+          !mountedRef.current
+        ) {
+          return;
+        }
 
-      /*
-       * CHECK SELECTED CARD
-       */
 
-      if (
-        selectedCard &&
-        card.id === selectedCard.id
-      ) {
+        /* LAND CARD */
 
-        if (side === "player") {
+        if (
+          side === "ai"
+        ) {
 
-          setWinner("player");
-
-          setCoins(
-            (current) =>
-              current + bet
-          );
-
-          setMessage(
-            "Your selected card landed on YOUR side!"
-          );
-
-          playWinSound();
-
-          await dealerSpeak(
-            "There it is! Your selected card landed on your side. Congratulations, you win!"
+          setAiCards(
+            (cards) => [
+              ...cards,
+              card,
+            ]
           );
 
         } else {
 
-          setWinner("ai");
-
-          setCoins(
-            (current) =>
-              Math.max(
-                0,
-                current - bet
-              )
+          setPlayerCards(
+            (cards) => [
+              ...cards,
+              card,
+            ]
           );
 
-          setMessage(
-            "Your selected card landed on the AI side."
-          );
-
-          playLoseSound();
-
-          await dealerSpeak(
-            "I found your card first. It landed on my side. Better luck next time!"
-          );
         }
 
-        setGameState("finished");
 
-        setIsDealing(false);
+        /* =========================
+           SELECTED CARD FOUND
+        ========================= */
 
-        return;
-      }
+        if (
+          selectedCard &&
+          card.id ===
+            selectedCard.id
+        ) {
 
-      /*
-       * NEXT CARD
-       */
+          setCurrentCard(
+            null
+          );
 
-      setDealIndex(
-        (current) =>
-          current + 1
-      );
+          setCurrentSide(
+            null
+          );
 
-      setCurrentCard(null);
 
-      setCurrentSide(null);
+          if (
+            side ===
+            "player"
+          ) {
 
-      setIsDealing(false);
+            setWinner(
+              "player"
+            );
 
-    }, 900);
 
-    dealTimer.current = timer;
+            const newBalance =
+              coins + bet;
+
+            setCoins(
+              newBalance
+            );
+
+
+            setMessage(
+              "Your selected card landed on your side!"
+            );
+
+
+            /* HISTORY */
+
+            const historyEntry = {
+              id:
+                Date.now(),
+              card:
+                `${selectedCard.rank}${selectedCard.suit}`,
+              cardName:
+                `${selectedCard.rank} of ${selectedCard.suitName}`,
+              bet,
+              result:
+                "win",
+              amount:
+                bet,
+              balance:
+                newBalance,
+              time:
+                new Date().toLocaleString(),
+            };
+
+
+            setRoundHistory(
+              (history) => [
+                historyEntry,
+                ...history,
+              ].slice(0, 10)
+            );
+
+
+            playWinSound();
+
+
+            dealerSpeak(
+              "There it is. Your card landed on your side. Congratulations, you win!",
+              {
+                rate: 0.84,
+              }
+            );
+
+
+          } else {
+
+            setWinner(
+              "ai"
+            );
+
+
+            const newBalance =
+              Math.max(
+                0,
+                coins - bet
+              );
+
+
+            setCoins(
+              newBalance
+            );
+
+
+            setMessage(
+              "Your selected card landed on the AI side."
+            );
+
+
+            /* HISTORY */
+
+            const historyEntry = {
+              id:
+                Date.now(),
+              card:
+                `${selectedCard.rank}${selectedCard.suit}`,
+              cardName:
+                `${selectedCard.rank} of ${selectedCard.suitName}`,
+              bet,
+              result:
+                "lose",
+              amount:
+                -bet,
+              balance:
+                newBalance,
+              time:
+                new Date().toLocaleString(),
+            };
+
+
+            setRoundHistory(
+              (history) => [
+                historyEntry,
+                ...history,
+              ].slice(0, 10)
+            );
+
+
+            playLoseSound();
+
+
+            dealerSpeak(
+              "I found your card. It landed on my side. Better luck next time!",
+              {
+                rate: 0.84,
+              }
+            );
+
+          }
+
+
+          setGameState(
+            "finished"
+          );
+
+          return;
+
+        }
+
+
+        /* NEXT CARD */
+
+        setCurrentCard(
+          null
+        );
+
+        setCurrentSide(
+          null
+        );
+
+        setDealIndex(
+          (value) =>
+            value + 1
+        );
+
+
+      }, 750);
+
 
     return () => {
-      clearTimeout(timer);
+
+      if (timerRef.current) {
+
+        clearTimeout(
+          timerRef.current
+        );
+
+      }
+
     };
 
   }, [
@@ -504,31 +917,66 @@ function LuckDecider() {
     deck,
     selectedCard,
     bet,
-    isDealing,
+    coins,
   ]);
 
 
-  /*
-   * RESET
-   */
+  /* =========================
+     CLEAR HISTORY
+  ========================= */
+
+  const clearHistory = () => {
+
+    if (
+      window.confirm(
+        "Clear all round history?"
+      )
+    ) {
+
+      setRoundHistory([]);
+
+      localStorage.removeItem(
+        "luckDeciderHistory"
+      );
+
+    }
+
+  };
+
+
+  /* =========================
+     RESET
+  ========================= */
 
   const resetGame = () => {
 
+    unlockAudio();
+
     stopAllSounds();
 
-    if (dealTimer.current) {
+    if (timerRef.current) {
+
       clearTimeout(
-        dealTimer.current
+        timerRef.current
       );
+
     }
+
 
     playClickSound();
 
-    setSelectedCard(null);
 
-    setSelectedRank("3");
+    setSelectedCard(
+      null
+    );
 
-    setSelectedSuit("♠");
+    setSelectedRank(
+      "3"
+    );
+
+    setSelectedSuit(
+      "♠"
+    );
 
     setBet(100);
 
@@ -540,54 +988,74 @@ function LuckDecider() {
 
     setPlayerCards([]);
 
-    setCurrentCard(null);
+    setCurrentCard(
+      null
+    );
 
-    setCurrentSide(null);
+    setCurrentSide(
+      null
+    );
 
-    setWinner(null);
+    setWinner(
+      null
+    );
 
-    setIsDealing(false);
+    setShufflePhase(
+      0
+    );
 
-    setDealerTalking(false);
-
-    setGameState("selection");
+    setGameState(
+      "selection"
+    );
 
     setMessage(
       "Choose your card and trust your luck."
     );
 
-    setTimeout(() => {
+    setDealerTalking(
+      false
+    );
 
-      dealerSpeak(
-        "New round. Choose your card."
-      );
-
-    }, 400);
   };
 
+
+  /* =========================
+     SOUND TOGGLE
+  ========================= */
 
   const toggleSound = () => {
 
     unlockAudio();
 
-    setSoundOn((current) => {
+    setSoundOn(
+      (value) => {
 
-      const next = !current;
+        const next =
+          !value;
 
-      if (!next) {
-        stopAllSounds();
-        setDealerTalking(false);
+        if (!next) {
+
+          stopAllSounds();
+
+          setDealerTalking(
+            false
+          );
+
+        }
+
+        return next;
+
       }
+    );
 
-      return next;
-    });
   };
 
 
   const selectedSuitName =
     SUITS.find(
       (suit) =>
-        suit.symbol === selectedSuit
+        suit.symbol ===
+        selectedSuit
     )?.name;
 
 
@@ -595,7 +1063,10 @@ function LuckDecider() {
 
     <div className="luck-page">
 
-      {/* HEADER */}
+
+      {/* =====================
+          HEADER
+      ===================== */}
 
       <header className="luck-header">
 
@@ -603,8 +1074,13 @@ function LuckDecider() {
           to="/dashboard"
           className="luck-back"
         >
-          <ArrowLeft size={17} />
+
+          <ArrowLeft
+            size={17}
+          />
+
           Back
+
         </Link>
 
 
@@ -615,6 +1091,7 @@ function LuckDecider() {
           </div>
 
           <div>
+
             <span>
               AI CARD ARENA
             </span>
@@ -622,6 +1099,7 @@ function LuckDecider() {
             <h1>
               LUCK DECIDER
             </h1>
+
           </div>
 
         </div>
@@ -631,10 +1109,14 @@ function LuckDecider() {
 
           <button
             className="sound-button"
-            onClick={toggleSound}
+            onClick={
+              toggleSound
+            }
           >
 
-            <Volume2 size={17} />
+            <Volume2
+              size={17}
+            />
 
             {soundOn
               ? "Sound On"
@@ -645,7 +1127,9 @@ function LuckDecider() {
 
           <div className="coin-display">
 
-            <Coins size={17} />
+            <Coins
+              size={17}
+            />
 
             <strong>
               {coins.toLocaleString()}
@@ -658,80 +1142,60 @@ function LuckDecider() {
       </header>
 
 
+
       <main className="luck-main">
 
 
-        {/* DEALER HERO */}
+        {/* =====================
+            DEALER
+        ===================== */}
 
         <section className="dealer-stage">
 
+          <div className="casino-glow" />
 
-          <div className="dealer-background-glow" />
+          <div className="dealer-content">
 
+            <div className="dealer-icon">
 
-          <div
-            className={
-              dealerTalking
-                ? "dealer-character talking"
-                : "dealer-character"
-            }
-          >
-
-            <div className="dealer-light" />
-
-            <img
-              src="/images/ai-dealer.png"
-              alt="AI female card dealer"
-              className="dealer-image"
-              onError={(e) => {
-                e.currentTarget.style.display =
-                  "none";
-              }}
-            />
-
-            <div className="dealer-fallback">
-              <div className="fallback-hair" />
-              <div className="fallback-face">
-                👩🏻
-              </div>
-              <div className="fallback-body">
-                ♠
-              </div>
-            </div>
-
-
-            {/* DECK IN HAND */}
-
-            <div
-              className={
-                gameState === "shuffling"
-                  ? "dealer-deck shuffling"
-                  : "dealer-deck"
-              }
-            >
-
-              <div className="deck-card back-one" />
-              <div className="deck-card back-two" />
-              <div className="deck-card back-three" />
+              <Bot
+                size={44}
+              />
 
             </div>
+
+            <span>
+              AI CARD DEALER
+            </span>
+
+            <h2>
+              Luck Decider
+            </h2>
+
+            <p>
+              Watch the deck.
+              Trust your prediction.
+            </p>
 
           </div>
 
 
-          {/* SPEECH */}
-
           <div
             className={
               dealerTalking
-                ? "dealer-speech active"
-                : "dealer-speech"
+                ? "voice-panel talking"
+                : "voice-panel"
             }
           >
 
-            <div className="speech-icon">
-              <Bot size={18} />
+            <div className="voice-avatar">
+
+              <Bot
+                size={20}
+              />
+
             </div>
+
 
             <div>
 
@@ -745,28 +1209,40 @@ function LuckDecider() {
 
             </div>
 
+
             {dealerTalking && (
+
               <div className="voice-bars">
+
                 <i />
                 <i />
                 <i />
                 <i />
                 <i />
+
               </div>
+
             )}
 
           </div>
 
 
-          {/* SHUFFLE INDICATOR */}
+          {gameState ===
+            "shuffling" && (
 
-          {gameState === "shuffling" && (
+            <div className="shuffle-status">
 
-            <div className="shuffle-indicator">
+              <Shuffle
+                size={18}
+              />
 
-              <Shuffle size={18} />
-
-              SHUFFLING 52 CARDS...
+              {shufflePhase ===
+                1
+                ? "GETTING READY..."
+                : shufflePhase ===
+                  2
+                ? "SHUFFLING 52 CARDS..."
+                : "DECK READY"}
 
             </div>
 
@@ -776,13 +1252,20 @@ function LuckDecider() {
 
 
 
-        {/* GAME STATUS */}
+        {/* =====================
+            STATUS
+        ===================== */}
 
         <section className="game-status">
 
           <div className="status-icon">
-            <Sparkles size={19} />
+
+            <Sparkles
+              size={19}
+            />
+
           </div>
+
 
           <div>
 
@@ -791,17 +1274,36 @@ function LuckDecider() {
             </span>
 
             <strong>
-              {gameState === "selection"
+
+              {gameState ===
+              "selection"
+
                 ? "Choose your card."
-                : gameState === "betting"
-                ? "Card selected. Place your bet."
-                : gameState === "shuffling"
-                ? "AI is shuffling the deck."
-                : gameState === "dealing"
-                ? "Cards are being dealt."
-                : winner === "player"
+
+                : gameState ===
+                  "betting"
+
+                ? "Card locked. Place your bet."
+
+                : gameState ===
+                  "shuffling"
+
+                ? "The 52-card deck is being shuffled."
+
+                : gameState ===
+                  "dealing"
+
+                ? `Dealing card ${
+                    dealIndex + 1
+                  } of 52.`
+
+                : winner ===
+                  "player"
+
                 ? "YOU WON!"
+
                 : "AI WON THIS ROUND."}
+
             </strong>
 
           </div>
@@ -810,9 +1312,12 @@ function LuckDecider() {
 
 
 
-        {/* SELECTION */}
+        {/* =====================
+            CARD SELECTION
+        ===================== */}
 
-        {gameState === "selection" && (
+        {gameState ===
+          "selection" && (
 
           <section className="selection-panel">
 
@@ -823,12 +1328,12 @@ function LuckDecider() {
               </span>
 
               <h2>
-                Choose your card.
+                Choose your card
               </h2>
 
               <p>
-                Tell the AI which exact card
-                you believe will appear.
+                Pick the exact rank
+                and suit.
               </p>
 
             </div>
@@ -837,7 +1342,7 @@ function LuckDecider() {
             <div className="selection-grid">
 
 
-              <div className="rank-section">
+              <div>
 
                 <label>
                   CARD RANK
@@ -845,25 +1350,26 @@ function LuckDecider() {
 
                 <div className="rank-grid">
 
-                  {RANKS.map((rank) => (
+                  {RANKS.map(
+                    (rank) => (
 
                     <button
                       key={rank}
                       className={
-                        selectedRank === rank
+                        selectedRank ===
+                        rank
                           ? "rank-button active"
                           : "rank-button"
                       }
-                      onClick={() => {
-
-                        unlockAudio();
-                        playClickSound();
-
-                        setSelectedRank(rank);
-
-                      }}
+                      onClick={() =>
+                        selectRank(
+                          rank
+                        )
+                      }
                     >
+
                       {rank}
+
                     </button>
 
                   ))}
@@ -873,7 +1379,7 @@ function LuckDecider() {
               </div>
 
 
-              <div className="suit-section">
+              <div>
 
                 <label>
                   SUIT
@@ -881,10 +1387,13 @@ function LuckDecider() {
 
                 <div className="suit-grid">
 
-                  {SUITS.map((suit) => (
+                  {SUITS.map(
+                    (suit) => (
 
                     <button
-                      key={suit.symbol}
+                      key={
+                        suit.symbol
+                      }
                       className={
                         selectedSuit ===
                         suit.symbol
@@ -892,18 +1401,25 @@ function LuckDecider() {
                           : "suit-button"
                       }
                       onClick={() =>
-                        chooseSuit(suit)
+                        selectSuit(
+                          suit
+                        )
                       }
                     >
 
                       <strong
                         className={
-                          suit.color === "red"
+                          suit.color ===
+                          "red"
                             ? "red-suit"
                             : ""
                         }
                       >
-                        {suit.symbol}
+
+                        {
+                          suit.symbol
+                        }
+
                       </strong>
 
                       <span>
@@ -921,8 +1437,6 @@ function LuckDecider() {
             </div>
 
 
-            {/* PREVIEW */}
-
             <div className="prediction-preview">
 
               <div className="preview-playing-card">
@@ -933,13 +1447,17 @@ function LuckDecider() {
 
                 <strong
                   className={
-                    selectedSuit === "♥" ||
-                    selectedSuit === "♦"
+                    selectedSuit ===
+                      "♥" ||
+                    selectedSuit ===
+                      "♦"
                       ? "red-suit"
                       : ""
                   }
                 >
+
                   {selectedSuit}
+
                 </strong>
 
               </div>
@@ -964,11 +1482,13 @@ function LuckDecider() {
             <button
               className="primary-game-button"
               onClick={
-                confirmSelection
+                lockCard
               }
             >
 
-              <Check size={18} />
+              <Check
+                size={18}
+              />
 
               LOCK MY CARD
 
@@ -980,13 +1500,16 @@ function LuckDecider() {
 
 
 
-        {/* BETTING */}
+        {/* =====================
+            BET
+        ===================== */}
 
-        {gameState === "betting" && (
+        {gameState ===
+          "betting" && (
 
           <section className="bet-panel">
 
-            <div className="bet-selected">
+            <div className="bet-selected-card">
 
               <span>
                 YOUR CARD
@@ -1000,13 +1523,15 @@ function LuckDecider() {
 
                 <strong
                   className={
-                    selectedCard.suit === "♥" ||
-                    selectedCard.suit === "♦"
+                    selectedCard.color ===
+                    "red"
                       ? "red-suit"
                       : ""
                   }
                 >
+
                   {selectedCard.suit}
+
                 </strong>
 
               </div>
@@ -1027,16 +1552,20 @@ function LuckDecider() {
 
               <div className="bet-input">
 
-                <Coins size={20} />
+                <Coins
+                  size={20}
+                />
 
                 <input
                   type="number"
-                  min="10"
+                  min="1"
                   value={bet}
-                  onChange={(e) =>
+                  onChange={(
+                    event
+                  ) =>
                     setBet(
                       Number(
-                        e.target.value
+                        event.target.value
                       )
                     )
                   }
@@ -1050,7 +1579,7 @@ function LuckDecider() {
 
               <small>
                 Balance:{" "}
-                {coins.toLocaleString()} coins
+                {coins.toLocaleString()}
               </small>
 
             </div>
@@ -1058,10 +1587,14 @@ function LuckDecider() {
 
             <button
               className="primary-game-button"
-              onClick={startGame}
+              onClick={
+                startGame
+              }
             >
 
-              <Shuffle size={18} />
+              <Shuffle
+                size={18}
+              />
 
               SHUFFLE & START DEAL
 
@@ -1070,9 +1603,13 @@ function LuckDecider() {
 
             <button
               className="secondary-game-button"
-              onClick={resetGame}
+              onClick={
+                resetGame
+              }
             >
+
               Change Card
+
             </button>
 
           </section>
@@ -1081,10 +1618,116 @@ function LuckDecider() {
 
 
 
-        {/* TABLE */}
+        {/* =====================
+            SHUFFLE
+        ===================== */}
 
-        {(gameState === "dealing" ||
-          gameState === "finished") && (
+        {gameState ===
+          "shuffling" && (
+
+          <section className="shuffle-table">
+
+            <div className="shuffle-title">
+
+              <Shuffle
+                size={20}
+              />
+
+              <div>
+
+                <span>
+                  LIVE DECK
+                </span>
+
+                <strong>
+                  52 CARD SHUFFLE
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div
+              className={
+                shufflePhase ===
+                2
+                  ? "live-deck active"
+                  : "live-deck"
+              }
+            >
+
+              {Array.from(
+                {
+                  length: 52,
+                },
+                (_, index) => (
+
+                  <div
+                    key={index}
+                    className="shuffle-card"
+                    style={{
+                      "--i":
+                        index,
+                    }}
+                  >
+
+                    <div className="mini-card-pattern">
+
+                      <span>
+                        ♠
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+
+            <div className="shuffle-progress">
+
+              <div
+                className={
+                  shufflePhase ===
+                  2
+                    ? "progress-bar active"
+                    : "progress-bar"
+                }
+              />
+
+            </div>
+
+
+            <p className="shuffle-message">
+
+              {shufflePhase ===
+              1
+                ? "Preparing the deck..."
+                : shufflePhase ===
+                  2
+                ? "Cards are being shuffled..."
+                : "Deck ready."}
+
+            </p>
+
+          </section>
+
+        )}
+
+
+
+        {/* =====================
+            DEALING
+        ===================== */}
+
+        {(gameState ===
+          "dealing" ||
+          gameState ===
+            "finished") && (
 
           <section className="casino-table">
 
@@ -1093,9 +1736,12 @@ function LuckDecider() {
 
               <div className="table-player">
 
-                <Bot size={19} />
+                <Bot
+                  size={19}
+                />
 
                 <div>
+
                   <span>
                     AI
                   </span>
@@ -1103,6 +1749,7 @@ function LuckDecider() {
                   <strong>
                     DEALER
                   </strong>
+
                 </div>
 
               </div>
@@ -1115,8 +1762,13 @@ function LuckDecider() {
                 </span>
 
                 <strong>
+
                   {dealIndex}
-                  <small>/52</small>
+
+                  <small>
+                    /52
+                  </small>
+
                 </strong>
 
               </div>
@@ -1124,9 +1776,12 @@ function LuckDecider() {
 
               <div className="table-player">
 
-                <User size={19} />
+                <User
+                  size={19}
+                />
 
                 <div>
+
                   <span>
                     PLAYER
                   </span>
@@ -1134,14 +1789,13 @@ function LuckDecider() {
                   <strong>
                     YOU
                   </strong>
+
                 </div>
 
               </div>
 
             </div>
 
-
-            {/* FELT TABLE */}
 
             <div className="felt-table">
 
@@ -1156,34 +1810,23 @@ function LuckDecider() {
               </div>
 
 
-              {/* CENTER DECK */}
-
-              <div
-                className={
-                  gameState === "dealing"
-                    ? "center-deck active"
-                    : "center-deck"
-                }
-              >
+              <div className="center-deck">
 
                 <div className="deck-stack" />
 
                 <span>
-                  {gameState === "dealing"
-                    ? "DEALING"
-                    : "LUCK"}
+                  DEALING
                 </span>
 
               </div>
 
 
-              {/* FLYING CARD */}
-
-              {currentCard && currentSide && (
+              {currentCard && (
 
                 <div
                   className={
-                    currentSide === "ai"
+                    currentSide ===
+                    "ai"
                       ? "flying-card to-ai"
                       : "flying-card to-player"
                   }
@@ -1203,7 +1846,9 @@ function LuckDecider() {
                           : ""
                       }
                     >
+
                       {currentCard.suit}
+
                     </strong>
 
                   </div>
@@ -1213,20 +1858,19 @@ function LuckDecider() {
               )}
 
 
-              {/* AI CARDS */}
-
               <div className="table-card-area ai-area">
 
-                {aiCards.map((card) => (
+                {aiCards.map(
+                  (card) => (
 
                   <div
+                    key={card.id}
                     className={
                       card.id ===
                       selectedCard?.id
                         ? "landed-card hit-card"
                         : "landed-card"
                     }
-                    key={card.id}
                   >
 
                     <span>
@@ -1235,12 +1879,15 @@ function LuckDecider() {
 
                     <strong
                       className={
-                        card.color === "red"
+                        card.color ===
+                        "red"
                           ? "red-suit"
                           : ""
                       }
                     >
+
                       {card.suit}
+
                     </strong>
 
                   </div>
@@ -1250,20 +1897,19 @@ function LuckDecider() {
               </div>
 
 
-              {/* PLAYER CARDS */}
-
               <div className="table-card-area player-area">
 
-                {playerCards.map((card) => (
+                {playerCards.map(
+                  (card) => (
 
                   <div
+                    key={card.id}
                     className={
                       card.id ===
                       selectedCard?.id
                         ? "landed-card hit-card"
                         : "landed-card"
                     }
-                    key={card.id}
                   >
 
                     <span>
@@ -1272,12 +1918,15 @@ function LuckDecider() {
 
                     <strong
                       className={
-                        card.color === "red"
+                        card.color ===
+                        "red"
                           ? "red-suit"
                           : ""
                       }
                     >
+
                       {card.suit}
+
                     </strong>
 
                   </div>
@@ -1289,13 +1938,17 @@ function LuckDecider() {
             </div>
 
 
-            {/* RESULT */}
+            {/* =====================
+                RESULT
+            ===================== */}
 
-            {gameState === "finished" && (
+            {gameState ===
+              "finished" && (
 
               <div
                 className={
-                  winner === "player"
+                  winner ===
+                  "player"
                     ? "result-banner win"
                     : "result-banner lose"
                 }
@@ -1303,9 +1956,18 @@ function LuckDecider() {
 
                 <div className="result-icon">
 
-                  {winner === "player"
-                    ? <Trophy size={28} />
-                    : <XCircle size={28} />}
+                  {winner ===
+                  "player"
+                    ? (
+                      <Trophy
+                        size={28}
+                      />
+                    )
+                    : (
+                      <XCircle
+                        size={28}
+                      />
+                    )}
 
                 </div>
 
@@ -1313,20 +1975,28 @@ function LuckDecider() {
                 <div>
 
                   <span>
-                    {winner === "player"
+
+                    {winner ===
+                    "player"
                       ? "YOU WIN"
                       : "AI WINS"}
+
                   </span>
 
                   <h2>
+
                     {selectedCard.rank}
                     {selectedCard.suit}
+
                   </h2>
 
                   <p>
-                    {winner === "player"
+
+                    {winner ===
+                    "player"
                       ? `Congratulations! +${bet} coins`
                       : `The card landed on AI. -${bet} coins`}
+
                   </p>
 
                 </div>
@@ -1334,10 +2004,14 @@ function LuckDecider() {
 
                 <button
                   className="primary-game-button"
-                  onClick={resetGame}
+                  onClick={
+                    resetGame
+                  }
                 >
 
-                  <RotateCcw size={18} />
+                  <RotateCcw
+                    size={18}
+                  />
 
                   PLAY AGAIN
 
@@ -1351,10 +2025,196 @@ function LuckDecider() {
 
         )}
 
+
+
+        {/* =========================
+            ROUND HISTORY
+        ========================= */}
+
+        {roundHistory.length > 0 && (
+
+          <section className="round-history">
+
+            <div className="history-heading">
+
+              <div className="history-title">
+
+                <div className="history-icon">
+                  <History
+                    size={19}
+                  />
+                </div>
+
+                <div>
+
+                  <span>
+                    GAME RECORD
+                  </span>
+
+                  <h2>
+                    Round History
+                  </h2>
+
+                </div>
+
+              </div>
+
+
+              <button
+                className="history-clear"
+                onClick={
+                  clearHistory
+                }
+              >
+                Clear History
+              </button>
+
+            </div>
+
+
+            <div className="history-list">
+
+              {roundHistory.map(
+                (round, index) => (
+
+                <div
+                  key={round.id}
+                  className={`history-row ${round.result}`}
+                >
+
+
+                  <div className="history-number">
+                    #{index + 1}
+                  </div>
+
+
+                  <div className="history-card">
+
+                    <div className="history-mini-card">
+
+                      <span>
+                        {round.card.slice(
+                          0,
+                          -1
+                        )}
+                      </span>
+
+                      <strong
+                        className={
+                          ["♥", "♦"].includes(
+                            round.card.slice(-1)
+                          )
+                            ? "red-suit"
+                            : ""
+                        }
+                      >
+                        {round.card.slice(-1)}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <strong>
+                        {round.cardName}
+                      </strong>
+
+                      <span>
+                        {round.time}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  <div className="history-details">
+
+                    <span>
+                      BET
+                    </span>
+
+                    <strong>
+                      {round.bet.toLocaleString()}
+                      <small>
+                        coins
+                      </small>
+                    </strong>
+
+                  </div>
+
+
+                  <div className="history-result">
+
+                    {round.result ===
+                    "win"
+                      ? (
+                        <>
+                          <Trophy
+                            size={16}
+                          />
+                          <span>
+                            WIN
+                          </span>
+                        </>
+                      )
+                      : (
+                        <>
+                          <XCircle
+                            size={16}
+                          />
+                          <span>
+                            LOSS
+                          </span>
+                        </>
+                      )}
+
+                  </div>
+
+
+                  <div className="history-balance">
+
+                    <span>
+                      BALANCE
+                    </span>
+
+                    <strong>
+                      {round.balance.toLocaleString()}
+                    </strong>
+
+                    <small
+                      className={
+                        round.amount >= 0
+                          ? "profit"
+                          : "loss"
+                      }
+                    >
+
+                      {round.amount >= 0
+                        ? `+${round.amount}`
+                        : round.amount}
+
+                    </small>
+
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </section>
+
+        )}
+
       </main>
 
     </div>
+
   );
+
 }
 
 
