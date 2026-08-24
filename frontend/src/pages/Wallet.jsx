@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Coins,
@@ -9,57 +10,54 @@ import {
   ShieldCheck,
   History,
 } from "lucide-react";
-
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import "./Wallet.css";
 
 
 function Wallet() {
 
-  /* =========================
-     GET USER
-  ========================= */
+  const navigate = useNavigate();
 
-  const savedUser =
-    localStorage.getItem("aiCardArenaUser");
+  const [coins, setCoins] = useState(0);
+  const [diamonds, setDiamonds] = useState(0);
 
-  let user = null;
+  useEffect(() => {
+    const fetchWallet = async () => {
+      const token = localStorage.getItem("token");
 
-  try {
+      if (!token) {
+        navigate("/login");
+        return;
+      }
 
-    user = savedUser
-      ? JSON.parse(savedUser)
-      : null;
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/wallet",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-  } catch (error) {
+        const data = await response.json();
 
-    console.log(
-      "Unable to read wallet data."
-    );
+        if (!response.ok) {
+          console.error(data.message);
+          return;
+        }
 
-  }
-
-
-  /* =========================
-     DEFAULT WALLET
-  ========================= */
-
-  if (!user) {
-
-    user = {
-      coins: 0,
-      diamonds: 0,
+        setCoins(Number(data.wallet.coins) || 0);
+        setDiamonds(Number(data.wallet.diamonds) || 0);
+      } catch (error) {
+        console.error("Wallet fetch error:", error);
+      }
     };
 
-  }
+    fetchWallet();
+  }, [navigate]);
 
-
-  const coins =
-    Number(user.coins) || 0;
-
-  const diamonds =
-    Number(user.diamonds) || 0;
 
 
   return (

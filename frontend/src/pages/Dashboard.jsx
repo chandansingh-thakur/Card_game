@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Coins,
   Gem,
@@ -16,8 +18,46 @@ import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+useEffect(() => {
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/me",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      }
+
+      setUser(data.user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  fetchUser();
+  }, [navigate]);
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     navigate("/");
   };
 
@@ -63,7 +103,7 @@ function Dashboard() {
 
             <div>
               <span>Coins</span>
-              <strong>10,000</strong>
+              <strong>{user ? user.coins : "..."}</strong>
             </div>
 
           </Link>
@@ -80,7 +120,7 @@ function Dashboard() {
 
             <div>
               <span>Diamonds</span>
-              <strong>250</strong>
+              <strong>{user ? user.diamonds : "..."}</strong>
             </div>
 
           </Link>
@@ -145,7 +185,7 @@ function Dashboard() {
               <span>PLAYER</span>
 
               <strong>
-                Your Profile
+                {user ? user.username : "..."}
               </strong>
 
             </div>

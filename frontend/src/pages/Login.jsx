@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Mail, ShieldCheck } from "lucide-react";
 import "./Auth.css";
@@ -5,11 +6,49 @@ import "./Auth.css";
 function Login() {
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Backend authentication baad mein connect hoga
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      // Save JWT token
+      localStorage.setItem("token", data.token);
+
+      // Login successful
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Unable to connect to backend");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,6 +97,8 @@ function Login() {
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -83,14 +124,20 @@ function Login() {
               <input
                 type="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
           </div>
 
-          <button type="submit" className="auth-submit">
-            LOGIN TO ARENA
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={loading}
+          >
+            {loading ? "LOGGING IN..." : "LOGIN TO ARENA"}
           </button>
 
         </form>

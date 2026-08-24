@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   User,
   Mail,
@@ -20,51 +22,68 @@ function Profile() {
 
   const navigate = useNavigate();
 
-
-  /* =========================
-     GET USER DATA
-  ========================= */
-
-  const savedUser =
-    localStorage.getItem("aiCardArenaUser");
-
-
-  let user = null;
-
-
-  try {
-
-    user = savedUser
-      ? JSON.parse(savedUser)
-      : null;
-
-  } catch (error) {
-
-    console.log(
-      "Unable to read profile data."
-    );
-
-  }
+  const [user, setUser] = useState(null);
 
 
   /* =========================
-     DEFAULT USER
+     GET USER FROM BACKEND
   ========================= */
 
-  if (!user) {
+  useEffect(() => {
 
-    user = {
-      fullName: "Guest Player",
-      username: "guest",
-      email: "Not available",
-      coins: 0,
-      diamonds: 0,
-      gamesPlayed: 0,
-      wins: 0,
-      losses: 0,
+    const fetchUser = async () => {
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+          "http://localhost:5000/api/auth/me",
+          {
+            method: "GET",
+
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+          localStorage.removeItem("token");
+
+          navigate("/login");
+
+          return;
+        }
+
+
+        setUser(data.user);
+
+      } catch (error) {
+
+        console.error(
+          "Profile fetch error:",
+          error
+        );
+
+      }
+
     };
 
-  }
+
+    fetchUser();
+
+  }, [navigate]);
 
 
   /* =========================
@@ -73,9 +92,7 @@ function Profile() {
 
   const handleLogout = () => {
 
-    localStorage.removeItem(
-      "aiCardArenaLoggedIn"
-    );
+    localStorage.removeItem("token");
 
     navigate("/");
 
@@ -83,15 +100,42 @@ function Profile() {
 
 
   /* =========================
-     AVATAR LETTER
+     LOADING
+  ========================= */
+
+  if (!user) {
+
+    return (
+      <div className="profile-page">
+
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#ffffff",
+          }}
+        >
+          Loading profile...
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  /* =========================
+     AVATAR
   ========================= */
 
   const avatarLetter =
     user.fullName
-      ? user.fullName
-          .charAt(0)
-          .toUpperCase()
-      : "G";
+      ? user.fullName.charAt(0).toUpperCase()
+      : user.username
+        ? user.username.charAt(0).toUpperCase()
+        : "U";
 
 
   return (
@@ -105,6 +149,8 @@ function Profile() {
 
       <header className="profile-header">
 
+
+        {/* BACK */}
 
         <Link
           to="/dashboard"
@@ -120,6 +166,8 @@ function Profile() {
         </Link>
 
 
+
+        {/* BRAND */}
 
         <div className="profile-header-brand">
 
@@ -143,16 +191,19 @@ function Profile() {
 
 
 
+        {/* LOGOUT */}
+
         <button
           onClick={handleLogout}
           className="profile-logout"
         >
 
-          <LogOut size={16} />
+          <LogOut size={17} />
 
           Logout
 
         </button>
+
 
       </header>
 
@@ -172,6 +223,8 @@ function Profile() {
         <section className="profile-hero">
 
 
+          {/* AVATAR */}
+
           <div className="profile-avatar-large">
 
             {avatarLetter}
@@ -179,41 +232,53 @@ function Profile() {
           </div>
 
 
+
+          {/* IDENTITY */}
+
           <div className="profile-identity">
 
             <span className="profile-eyebrow">
               PLAYER PROFILE
             </span>
 
+
             <h1>
-              {user.fullName}
+              {user.fullName ||
+                user.username ||
+                "Player"}
             </h1>
+
 
             <p>
               @{user.username}
             </p>
 
+
             <div className="profile-status">
 
               <span className="status-dot"></span>
 
-              Active Player
+              ACTIVE PLAYER
 
             </div>
 
           </div>
 
 
+
+          {/* EDIT */}
+
           <button
-            className="edit-profile-button"
             type="button"
+            className="edit-profile-button"
           >
 
-            <Edit3 size={16} />
+            <Edit3 size={15} />
 
             Edit Profile
 
           </button>
+
 
         </section>
 
@@ -235,12 +300,12 @@ function Profile() {
               </span>
 
               <h2>
-                Account Information
+                Personal Information
               </h2>
 
             </div>
 
-            <ShieldCheck size={21} />
+            <User size={21} />
 
           </div>
 
@@ -249,13 +314,16 @@ function Profile() {
           <div className="profile-info-grid">
 
 
-            {/* NAME */}
+            {/* FULL NAME */}
 
             <div className="profile-info-card">
 
               <div className="profile-info-icon">
+
                 <User size={19} />
+
               </div>
+
 
               <div>
 
@@ -264,7 +332,8 @@ function Profile() {
                 </span>
 
                 <strong>
-                  {user.fullName}
+                  {user.fullName ||
+                    "Not provided"}
                 </strong>
 
               </div>
@@ -278,8 +347,11 @@ function Profile() {
             <div className="profile-info-card">
 
               <div className="profile-info-icon">
+
                 <User size={19} />
+
               </div>
+
 
               <div>
 
@@ -302,8 +374,11 @@ function Profile() {
             <div className="profile-info-card">
 
               <div className="profile-info-icon">
+
                 <Mail size={19} />
+
               </div>
+
 
               <div>
 
@@ -321,27 +396,31 @@ function Profile() {
 
 
 
-            {/* ACCOUNT TYPE */}
+            {/* ACCOUNT STATUS */}
 
             <div className="profile-info-card">
 
               <div className="profile-info-icon">
+
                 <ShieldCheck size={19} />
+
               </div>
+
 
               <div>
 
                 <span>
-                  ACCOUNT TYPE
+                  ACCOUNT STATUS
                 </span>
 
                 <strong>
-                  Player Account
+                  Active
                 </strong>
 
               </div>
 
             </div>
+
 
           </div>
 
@@ -350,7 +429,7 @@ function Profile() {
 
 
         {/* =================================================
-            WALLET SUMMARY
+            WALLET
         ================================================= */}
 
         <section className="profile-section">
@@ -393,17 +472,22 @@ function Profile() {
             >
 
               <div className="profile-balance-icon">
+
                 <Coins size={24} />
+
               </div>
+
 
               <div>
 
                 <span>
-                  DEMO COINS
+                  COINS
                 </span>
 
                 <strong>
-                  {(user.coins || 0).toLocaleString()}
+                  {(
+                    Number(user.coins) || 0
+                  ).toLocaleString()}
                 </strong>
 
               </div>
@@ -420,8 +504,11 @@ function Profile() {
             >
 
               <div className="profile-balance-icon">
+
                 <Gem size={24} />
+
               </div>
+
 
               <div>
 
@@ -430,12 +517,15 @@ function Profile() {
                 </span>
 
                 <strong>
-                  {(user.diamonds || 0).toLocaleString()}
+                  {(
+                    Number(user.diamonds) || 0
+                  ).toLocaleString()}
                 </strong>
 
               </div>
 
             </Link>
+
 
           </div>
 
@@ -464,7 +554,7 @@ function Profile() {
 
             </div>
 
-            <Gamepad2 size={21} />
+            <Trophy size={21} />
 
           </div>
 
@@ -473,20 +563,24 @@ function Profile() {
           <div className="profile-stats-grid">
 
 
-            {/* GAMES */}
+            {/* GAMES PLAYED */}
 
             <div className="profile-stat-card">
 
               <div className="profile-stat-icon">
-                <Gamepad2 size={21} />
+
+                <Gamepad2 size={20} />
+
               </div>
+
 
               <span>
                 GAMES PLAYED
               </span>
 
+
               <strong>
-                {user.gamesPlayed || 0}
+                {Number(user.gamesPlayed) || 0}
               </strong>
 
             </div>
@@ -498,15 +592,19 @@ function Profile() {
             <div className="profile-stat-card">
 
               <div className="profile-stat-icon">
-                <Trophy size={21} />
+
+                <Trophy size={20} />
+
               </div>
+
 
               <span>
                 WINS
               </span>
 
+
               <strong>
-                {user.wins || 0}
+                {Number(user.wins) || 0}
               </strong>
 
             </div>
@@ -518,15 +616,19 @@ function Profile() {
             <div className="profile-stat-card">
 
               <div className="profile-stat-icon">
-                <Gamepad2 size={21} />
+
+                <Gamepad2 size={20} />
+
               </div>
+
 
               <span>
                 LOSSES
               </span>
 
+
               <strong>
-                {user.losses || 0}
+                {Number(user.losses) || 0}
               </strong>
 
             </div>
@@ -538,19 +640,23 @@ function Profile() {
             <div className="profile-stat-card">
 
               <div className="profile-stat-icon">
-                <Trophy size={21} />
+
+                <Trophy size={20} />
+
               </div>
+
 
               <span>
                 WIN RATE
               </span>
 
+
               <strong>
 
-                {user.gamesPlayed > 0
+                {Number(user.gamesPlayed) > 0
                   ? `${Math.round(
-                      (user.wins /
-                        user.gamesPlayed) *
+                      ((Number(user.wins) || 0) /
+                        Number(user.gamesPlayed)) *
                         100
                     )}%`
                   : "0%"}
@@ -558,6 +664,7 @@ function Profile() {
               </strong>
 
             </div>
+
 
           </div>
 
@@ -572,40 +679,50 @@ function Profile() {
         <section className="profile-actions">
 
 
+          {/* WALLET */}
+
           <Link
-            to="/games/badshah-pakad"
+            to="/wallet"
             className="profile-action primary"
           >
 
-            <Gamepad2 size={18} />
+            <Coins size={17} />
 
-            Play Badshah Pakad
+            View Wallet
 
           </Link>
 
 
-          <Link
-            to="/games/luck-decider"
+
+          {/* EDIT */}
+
+          <button
+            type="button"
             className="profile-action secondary"
           >
 
-            <Trophy size={18} />
+            <Edit3 size={17} />
 
-            Play Luck Decider
+            Edit Profile
 
-          </Link>
+          </button>
 
 
-          <Link
-            to="/history"
+
+          {/* LOGOUT */}
+
+          <button
+            type="button"
             className="profile-action secondary"
+            onClick={handleLogout}
           >
 
-            <Gamepad2 size={18} />
+            <LogOut size={17} />
 
-            Game History
+            Logout
 
-          </Link>
+          </button>
+
 
         </section>
 
@@ -615,6 +732,7 @@ function Profile() {
     </div>
 
   );
+
 }
 
 

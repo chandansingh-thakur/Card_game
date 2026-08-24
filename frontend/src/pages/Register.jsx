@@ -64,208 +64,89 @@ function Register() {
      REGISTER
   ========================= */
 
-  const handleRegister = (event) => {
+  const handleRegister = async (event) => {
+  event.preventDefault();
 
-    event.preventDefault();
+  setError("");
 
-    setError("");
+  const fullName = formData.fullName.trim();
+  const username = formData.username.trim();
+  const email = formData.email.trim().toLowerCase();
+  const password = formData.password;
+  const confirmPassword = formData.confirmPassword;
 
+  // Validation
+  if (
+    !fullName ||
+    !username ||
+    !email ||
+    !password ||
+    !confirmPassword
+  ) {
+    setError("Please fill in all the fields.");
+    return;
+  }
 
-    const fullName = formData.fullName.trim();
+  if (fullName.length < 2) {
+    setError("Please enter a valid full name.");
+    return;
+  }
 
-    const username = formData.username.trim();
+  if (username.length < 3) {
+    setError("Username must contain at least 3 characters.");
+    return;
+  }
 
-    const email = formData.email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setError("Please enter a valid email address.");
+    return;
+  }
 
-    const password = formData.password;
+  if (password.length < 6) {
+    setError("Password must contain at least 6 characters.");
+    return;
+  }
 
-    const confirmPassword =
-      formData.confirmPassword;
+  if (password !== confirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
 
+  setLoading(true);
 
-    /* =========================
-       VALIDATION
-    ========================= */
-
-    if (
-      !fullName ||
-      !username ||
-      !email ||
-      !password ||
-      !confirmPassword
-    ) {
-
-      setError(
-        "Please fill in all the fields."
-      );
-
-      return;
-    }
-
-
-    if (fullName.length < 2) {
-
-      setError(
-        "Please enter a valid full name."
-      );
-
-      return;
-    }
-
-
-    if (username.length < 3) {
-
-      setError(
-        "Username must contain at least 3 characters."
-      );
-
-      return;
-    }
-
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-
-      setError(
-        "Please enter a valid email address."
-      );
-
-      return;
-    }
-
-
-    if (password.length < 6) {
-
-      setError(
-        "Password must contain at least 6 characters."
-      );
-
-      return;
-    }
-
-
-    if (password !== confirmPassword) {
-
-      setError(
-        "Passwords do not match."
-      );
-
-      return;
-    }
-
-
-    /* =========================
-       CHECK EXISTING ACCOUNT
-    ========================= */
-
-    const existingUser =
-      localStorage.getItem("aiCardArenaUser");
-
-
-    if (existingUser) {
-
-      try {
-
-        const parsedUser =
-          JSON.parse(existingUser);
-
-
-        if (
-          parsedUser.email === email
-        ) {
-
-          setError(
-            "An account with this email already exists."
-          );
-
-          return;
-        }
-
-
-        if (
-          parsedUser.username === username
-        ) {
-
-          setError(
-            "This username is already taken."
-          );
-
-          return;
-        }
-
-      } catch (error) {
-
-        console.log(
-          "Existing user data could not be read."
-        );
-
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
       }
+    );
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.message || "Registration failed.");
+      return;
     }
 
+    alert("Account created successfully!");
 
-    /* =========================
-       CREATE USER
-    ========================= */
-
-    setLoading(true);
-
-
-    const user = {
-
-      fullName,
-
-      username,
-
-      email,
-
-      password,
-
-      coins: 10000,
-
-      diamonds: 250,
-
-      gamesPlayed: 0,
-
-      wins: 0,
-
-      losses: 0,
-
-      joinedAt:
-        new Date().toISOString(),
-
-    };
-
-
-    /* =========================
-       SAVE USER
-    ========================= */
-
-    localStorage.setItem(
-      "aiCardArenaUser",
-      JSON.stringify(user)
-    );
-
-
-    localStorage.setItem(
-      "aiCardArenaLoggedIn",
-      "true"
-    );
-
-
-    /* =========================
-       REDIRECT
-    ========================= */
-
-    setTimeout(() => {
-
-      setLoading(false);
-
-      navigate("/dashboard");
-
-    }, 600);
-
-  };
-
+    navigate("/login");
+  } catch (error) {
+    console.error("Registration error:", error);
+    setError("Unable to connect to backend.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
 
