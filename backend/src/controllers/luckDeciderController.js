@@ -3,10 +3,14 @@ const {
   selectCard,
 } = require("../gameEngine/luckDecider/luckDeciderService");
 
+const {
+  placeBet,
+} = require("../gameEngine/luckDecider/luckDeciderBetService");
+
 // Start a new Luck Decider game
 const startGame = async (req, res) => {
   try {
-    const game = createGame(req.userId);
+    const game = await createGame(req.userId);
 
     return res.status(201).json({
       success: true,
@@ -35,7 +39,7 @@ const chooseCard = async (req, res) => {
       });
     }
 
-    const result = selectCard(
+    const result = await selectCard(
       gameId,
       req.userId,
       cardId
@@ -56,7 +60,45 @@ const chooseCard = async (req, res) => {
   }
 };
 
+const placeBetController = async (req, res) => {
+  try {
+    const { gameId, amount } = req.body;
+
+    if (!gameId || amount === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "gameId and amount are required",
+      });
+    }
+
+    const result = await placeBet(
+      gameId,
+      req.userId,
+      amount
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Bet placed successfully",
+      game: {
+        gameId: result.gameId,
+        betAmount: result.betAmount,
+        status: result.status,
+      },
+      wallet: result.wallet,
+    });
+  } catch (error) {
+    console.error("Place bet error:", error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   startGame,
   chooseCard,
+   placeBetController
 };
