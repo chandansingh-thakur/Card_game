@@ -1,0 +1,1389 @@
+.luck-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(121, 79, 255, 0.16),
+      transparent 38%
+    ),
+    #07080d;
+  color: #f5f3fa;
+  overflow-x: hidden;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.luck-header {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 42px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(7,8,13,0.92);
+  backdrop-filter: blur(18px);
+  position: relative;
+  z-index: 20;
+}
+
+.luck-back {
+  color: #bcb8ca;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: .2s ease;
+}
+
+.luck-back:hover {
+  color: white;
+  transform: translateX(-3px);
+}
+
+.luck-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-spade {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    145deg,
+    #ffffff,
+    #d9d8df
+  );
+  color: #17131f;
+  font-size: 22px;
+  box-shadow:
+    0 0 25px rgba(164,112,255,.18);
+}
+
+.luck-brand span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #a887ff;
+}
+
+.luck-brand h1 {
+  margin: 2px 0 0;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sound-button,
+.coin-display {
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.035);
+  color: #ddd9e8;
+  border-radius: 11px;
+  height: 40px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sound-button {
+  cursor: pointer;
+}
+
+.sound-button:hover {
+  border-color: rgba(160,117,255,.45);
+}
+
+.coin-display {
+  color: #ffd65a;
+}
+
+.coin-display strong {
+  color: white;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.luck-main {
+  width: min(1180px, calc(100% - 40px));
+  margin: auto;
+  padding: 28px 0 70px;
+}
+
+
+/* =========================
+   DEALER STAGE
+========================= */
+
+.dealer-stage {
+  min-height: 455px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 50% 25%,
+      rgba(137, 89, 255, .18),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      #10101a,
+      #090a10
+    );
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.35);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.dealer-background-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: rgba(126,80,255,.16);
+  filter: blur(100px);
+  top: -120px;
+}
+
+.dealer-character {
+  position: relative;
+  height: 445px;
+  width: 430px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 3;
+  animation: dealerBreath 4s ease-in-out infinite;
+}
+
+.dealer-character.talking {
+  animation:
+    dealerBreath 4s ease-in-out infinite,
+    dealerTalk .32s ease-in-out infinite alternate;
+}
+
+.dealer-image {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  object-fit: cover;
+  object-position: center top;
+  bottom: -12px;
+  border-radius: 220px 220px 30px 30px;
+  mask-image: linear-gradient(
+    to bottom,
+    black 75%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 75%,
+    transparent 100%
+  );
+  filter:
+    drop-shadow(
+      0 20px 35px
+      rgba(0,0,0,.65)
+    );
+}
+
+.dealer-fallback {
+  display: none;
+  position: absolute;
+  bottom: 30px;
+  width: 250px;
+  height: 330px;
+  text-align: center;
+}
+
+.dealer-image:not([src]) + .dealer-fallback,
+.dealer-image[src=""] + .dealer-fallback {
+  display: block;
+}
+
+.fallback-face {
+  font-size: 115px;
+  position: relative;
+  z-index: 3;
+}
+
+.fallback-body {
+  margin: -12px auto 0;
+  width: 190px;
+  height: 170px;
+  border-radius: 80px 80px 25px 25px;
+  background:
+    linear-gradient(
+      135deg,
+      #19131c,
+      #08070a
+    );
+  color: #d0a2ff;
+  font-size: 55px;
+  padding-top: 30px;
+}
+
+.dealer-light {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(173,111,255,.14);
+  filter: blur(45px);
+  top: 50px;
+}
+
+
+/* =========================
+   DECK IN DEALER HAND
+========================= */
+
+.dealer-deck {
+  position: absolute;
+  bottom: 68px;
+  width: 78px;
+  height: 105px;
+  z-index: 8;
+  transform: rotate(-3deg);
+}
+
+.deck-card {
+  position: absolute;
+  width: 70px;
+  height: 98px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.4);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #24263b 0px,
+      #24263b 3px,
+      #191b2c 3px,
+      #191b2c 7px
+    );
+  box-shadow:
+    0 5px 12px rgba(0,0,0,.4);
+}
+
+.back-one {
+  transform: translate(-8px, 4px) rotate(-8deg);
+}
+
+.back-two {
+  transform: translate(0, 2px) rotate(-2deg);
+}
+
+.back-three {
+  transform: rotate(4deg);
+}
+
+.dealer-deck.shuffling .back-one {
+  animation: shuffleOne .35s infinite alternate;
+}
+
+.dealer-deck.shuffling .back-two {
+  animation: shuffleTwo .35s .1s infinite alternate;
+}
+
+.dealer-deck.shuffling .back-three {
+  animation: shuffleThree .35s .18s infinite alternate;
+}
+
+
+/* =========================
+   SPEECH
+========================= */
+
+.dealer-speech {
+  position: absolute;
+  left: 34px;
+  top: 34px;
+  width: min(390px, 42%);
+  min-height: 88px;
+  border-radius: 18px;
+  padding: 17px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28,24,42,.95),
+      rgba(12,12,19,.95)
+    );
+  border: 1px solid rgba(165,117,255,.32);
+  box-shadow:
+    0 15px 45px rgba(0,0,0,.35);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.dealer-speech.active {
+  border-color: rgba(180,128,255,.7);
+  box-shadow:
+    0 0 30px rgba(135,83,255,.18);
+}
+
+.speech-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #c397ff;
+  background: rgba(151,94,255,.13);
+}
+
+.dealer-speech span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #9c83c4;
+  margin-bottom: 7px;
+}
+
+.dealer-speech strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #eeeaf5;
+}
+
+.voice-bars {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+}
+
+.voice-bars i {
+  display: block;
+  width: 3px;
+  border-radius: 4px;
+  height: 8px;
+  background: #b47aff;
+  animation: voiceBar .5s infinite alternate;
+}
+
+.voice-bars i:nth-child(2) {
+  animation-delay: .1s;
+}
+
+.voice-bars i:nth-child(3) {
+  animation-delay: .2s;
+}
+
+.voice-bars i:nth-child(4) {
+  animation-delay: .3s;
+}
+
+.voice-bars i:nth-child(5) {
+  animation-delay: .4s;
+}
+
+.shuffle-indicator {
+  position: absolute;
+  right: 34px;
+  top: 34px;
+  border-radius: 30px;
+  padding: 10px 16px;
+  background: rgba(154,100,255,.12);
+  border: 1px solid rgba(154,100,255,.35);
+  color: #c69cff;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.game-status {
+  margin-top: 18px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: #0e0f15;
+  border-radius: 18px;
+  padding: 18px 22px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.status-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #b88cff;
+  background: rgba(147,91,255,.12);
+}
+
+.game-status span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #756b88;
+  margin-bottom: 5px;
+}
+
+.game-status strong {
+  font-size: 14px;
+}
+
+
+/* =========================
+   SELECTION
+========================= */
+
+.selection-panel,
+.bet-panel {
+  margin-top: 18px;
+  border-radius: 22px;
+  padding: 30px;
+  background: #0d0e14;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.section-heading span {
+  color: #a47bdf;
+  letter-spacing: 2px;
+  font-size: 9px;
+}
+
+.section-heading h2 {
+  margin: 8px 0 7px;
+  font-size: 25px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #858093;
+}
+
+.selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-top: 28px;
+}
+
+.rank-section label,
+.suit-section label,
+.bet-controls label,
+.bet-selected > span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #83778f;
+  margin-bottom: 12px;
+}
+
+.rank-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(7, minmax(42px, 1fr));
+  gap: 8px;
+}
+
+.rank-button,
+.suit-button {
+  border: 1px solid rgba(255,255,255,.09);
+  background: #15161e;
+  color: #e7e4ed;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: .2s ease;
+}
+
+.rank-button {
+  height: 45px;
+  font-weight: 700;
+}
+
+.rank-button:hover,
+.suit-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(163,111,255,.5);
+}
+
+.rank-button.active,
+.suit-button.active {
+  border-color: #a36bff;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(150,93,255,.24),
+      rgba(69,41,121,.16)
+    );
+  box-shadow:
+    0 0 20px rgba(145,88,255,.14);
+}
+
+.suit-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, 1fr);
+  gap: 10px;
+}
+
+.suit-button {
+  min-height: 75px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.suit-button strong {
+  font-size: 26px;
+}
+
+.suit-button span {
+  font-size: 10px;
+  color: #8e8799;
+}
+
+.red-suit {
+  color: #ff4e6d !important;
+}
+
+.prediction-preview {
+  margin-top: 25px;
+  padding: 18px;
+  border-radius: 15px;
+  background: #101119;
+  border: 1px solid rgba(255,255,255,.07);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.preview-playing-card {
+  width: 58px;
+  height: 76px;
+  border-radius: 8px;
+  background: #f3f2f5;
+  color: #14141a;
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 800;
+}
+
+.preview-playing-card strong {
+  font-size: 28px;
+  align-self: center;
+}
+
+.prediction-preview span {
+  display: block;
+  color: #7e758a;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+}
+
+.prediction-preview > div:last-child strong {
+  font-size: 15px;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+.primary-game-button,
+.secondary-game-button {
+  min-height: 48px;
+  border-radius: 11px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: .2s ease;
+}
+
+.primary-game-button {
+  margin-top: 22px;
+  width: 100%;
+  border: 1px solid #c39bff;
+  background:
+    linear-gradient(
+      135deg,
+      #f1eff5,
+      #d7d5dd
+    );
+  color: #111117;
+}
+
+.primary-game-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 30px rgba(185,135,255,.15);
+}
+
+.secondary-game-button {
+  border: 1px solid rgba(255,255,255,.1);
+  background: #15161e;
+  color: #ddd8e5;
+}
+
+
+/* =========================
+   BET
+========================= */
+
+.bet-panel {
+  display: grid;
+  grid-template-columns:
+    180px 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.bet-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selected-card-large {
+  width: 105px;
+  height: 135px;
+  background: #f2f1f4;
+  color: #14141a;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 900;
+  box-shadow:
+    0 18px 35px rgba(0,0,0,.3);
+}
+
+.selected-card-large span {
+  font-size: 22px;
+}
+
+.selected-card-large strong {
+  font-size: 42px;
+  text-align: center;
+}
+
+.bet-selected > strong {
+  margin-top: 10px;
+}
+
+.bet-input {
+  height: 56px;
+  border: 1px solid rgba(255,196,55,.25);
+  border-radius: 12px;
+  background: rgba(255,190,40,.035);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  color: #ffc936;
+}
+
+.bet-input input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: white;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.bet-input span {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.bet-controls small {
+  display: block;
+  color: #6e6878;
+  margin-top: 7px;
+}
+
+.bet-panel .primary-game-button {
+  grid-column: 1 / -1;
+}
+
+.bet-panel .secondary-game-button {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================
+   CASINO TABLE
+========================= */
+
+.casino-table {
+  margin-top: 18px;
+  border-radius: 25px;
+  padding: 22px;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(30,110,75,.16),
+      transparent 50%
+    ),
+    #0b0c11;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.table-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b98cff;
+}
+
+.table-player:last-child {
+  justify-content: flex-end;
+  color: #ddd;
+}
+
+.table-player span,
+.cards-opened span {
+  display: block;
+  color: #756c81;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.table-player strong {
+  display: block;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.cards-opened {
+  text-align: center;
+}
+
+.cards-opened strong {
+  font-size: 19px;
+}
+
+.cards-opened small {
+  color: #777080;
+  font-size: 10px;
+}
+
+
+/* =========================
+   FELT TABLE
+========================= */
+
+.felt-table {
+  height: 530px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 8px solid #38291d;
+  background:
+    radial-gradient(
+      ellipse at center,
+      #126046 0%,
+      #0c4b37 45%,
+      #083527 100%
+    );
+  box-shadow:
+    inset 0 0 70px rgba(0,0,0,.45),
+    0 20px 60px rgba(0,0,0,.3);
+}
+
+.felt-table::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(232,190,92,.4);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.table-label {
+  position: absolute;
+  top: 25px;
+  width: 130px;
+  padding: 8px;
+  text-align: center;
+  border-radius: 30px;
+  border: 1px solid rgba(231,191,91,.45);
+  color: #e9ce86;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  z-index: 3;
+}
+
+.ai-label {
+  left: 80px;
+}
+
+.player-label {
+  right: 80px;
+}
+
+.center-deck {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 110px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+}
+
+.deck-stack {
+  position: absolute;
+  width: 74px;
+  height: 102px;
+  border-radius: 9px;
+  border: 2px solid rgba(255,255,255,.4);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #24283f 0px,
+      #24283f 3px,
+      #15192a 3px,
+      #15192a 7px
+    );
+  box-shadow:
+    5px 5px 0 #171a2a,
+    10px 10px 0 #111421;
+}
+
+.center-deck span {
+  position: relative;
+  z-index: 2;
+  color: #b99bff;
+  font-size: 8px;
+  letter-spacing: 2px;
+  margin-top: 120px;
+}
+
+
+/* =========================
+   LANDED CARDS
+========================= */
+
+.table-card-area {
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 260px;
+  min-height: 120px;
+  z-index: 6;
+}
+
+.ai-area {
+  left: 45px;
+  top: 90px;
+}
+
+.player-area {
+  right: 45px;
+  bottom: 75px;
+  justify-content: flex-end;
+}
+
+.landed-card {
+  width: 52px;
+  height: 72px;
+  border-radius: 7px;
+  background: #f4f2f5;
+  color: #15151a;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 900;
+  box-shadow:
+    0 7px 13px rgba(0,0,0,.3);
+  animation: landCard .35s ease-out;
+}
+
+.landed-card strong {
+  text-align: center;
+  font-size: 22px;
+}
+
+.hit-card {
+  box-shadow:
+    0 0 0 3px #ffd35a,
+    0 0 25px rgba(255,205,67,.65);
+  animation:
+    landCard .35s ease-out,
+    hitGlow 1s ease-in-out infinite alternate;
+}
+
+
+/* =========================
+   FLYING CARD
+========================= */
+
+.flying-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 80px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.flying-card-inner {
+  width: 100%;
+  height: 100%;
+  background: #f4f2f5;
+  color: #15151a;
+  border-radius: 8px;
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 900;
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.45);
+}
+
+.flying-card-inner strong {
+  font-size: 25px;
+  text-align: center;
+}
+
+.flying-card.to-ai {
+  animation: dealToAI .65s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.flying-card.to-player {
+  animation: dealToPlayer .65s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+
+/* =========================
+   RESULT
+========================= */
+
+.result-banner {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid;
+}
+
+.result-banner.win {
+  background: rgba(36,150,99,.08);
+  border-color: rgba(52,209,136,.4);
+}
+
+.result-banner.lose {
+  background: rgba(202,52,77,.08);
+  border-color: rgba(255,75,104,.35);
+}
+
+.result-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+}
+
+.win .result-icon {
+  color: #42e394;
+  background: rgba(53,224,145,.1);
+}
+
+.lose .result-icon {
+  color: #ff5574;
+  background: rgba(255,78,106,.1);
+}
+
+.result-banner span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #8d8495;
+}
+
+.result-banner h2 {
+  margin: 4px 0;
+  font-size: 22px;
+}
+
+.result-banner p {
+  margin: 0;
+  color: #9991a2;
+}
+
+.result-banner .primary-game-button {
+  margin: 0 0 0 auto;
+  width: auto;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes dealerBreath {
+
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+
+}
+
+@keyframes dealerTalk {
+
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.008);
+  }
+
+}
+
+@keyframes shuffleOne {
+
+  from {
+    transform:
+      translate(-8px, 4px)
+      rotate(-8deg);
+  }
+
+  to {
+    transform:
+      translate(-28px, -5px)
+      rotate(-18deg);
+  }
+
+}
+
+@keyframes shuffleTwo {
+
+  from {
+    transform:
+      translate(0, 2px)
+      rotate(-2deg);
+  }
+
+  to {
+    transform:
+      translate(25px, -7px)
+      rotate(15deg);
+  }
+
+}
+
+@keyframes shuffleThree {
+
+  from {
+    transform: rotate(4deg);
+  }
+
+  to {
+    transform:
+      translate(2px, -15px)
+      rotate(-4deg);
+  }
+
+}
+
+@keyframes voiceBar {
+
+  from {
+    height: 5px;
+  }
+
+  to {
+    height: 25px;
+  }
+
+}
+
+@keyframes dealToAI {
+
+  0% {
+    transform:
+      translate(-50%, -50%)
+      scale(1)
+      rotate(0deg);
+  }
+
+  100% {
+    transform:
+      translate(
+        -300px,
+        -180px
+      )
+      scale(.82)
+      rotate(-12deg);
+  }
+
+}
+
+@keyframes dealToPlayer {
+
+  0% {
+    transform:
+      translate(-50%, -50%)
+      scale(1)
+      rotate(0deg);
+  }
+
+  100% {
+    transform:
+      translate(
+        300px,
+        170px
+      )
+      scale(.82)
+      rotate(12deg);
+  }
+
+}
+
+@keyframes landCard {
+
+  0% {
+    opacity: 0;
+    transform:
+      translateY(-15px)
+      scale(.85)
+      rotate(8deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1)
+      rotate(0);
+  }
+
+}
+
+@keyframes hitGlow {
+
+  from {
+    box-shadow:
+      0 0 0 2px #ffd35a,
+      0 0 15px rgba(255,205,67,.35);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 3px #fff0a6,
+      0 0 35px rgba(255,205,67,.85);
+  }
+
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 850px) {
+
+  .luck-header {
+    padding: 0 18px;
+  }
+
+  .luck-brand {
+    display: none;
+  }
+
+  .luck-main {
+    width: min(
+      100% - 20px,
+      700px
+    );
+  }
+
+  .dealer-stage {
+    min-height: 420px;
+  }
+
+  .dealer-character {
+    transform: scale(.82);
+    transform-origin: bottom center;
+  }
+
+  .dealer-speech {
+    left: 15px;
+    top: 15px;
+    width: 55%;
+  }
+
+  .shuffle-indicator {
+    right: 15px;
+    top: 15px;
+  }
+
+  .selection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bet-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .bet-panel .primary-game-button,
+  .bet-panel .secondary-game-button {
+    grid-column: auto;
+  }
+
+  .felt-table {
+    height: 470px;
+  }
+
+  .ai-area {
+    left: 20px;
+  }
+
+  .player-area {
+    right: 20px;
+  }
+
+}
+
+
+@media (max-width: 560px) {
+
+  .header-actions {
+    gap: 5px;
+  }
+
+  .sound-button {
+    font-size: 0;
+    width: 40px;
+    justify-content: center;
+  }
+
+  .luck-main {
+    width: calc(100% - 14px);
+  }
+
+  .dealer-stage {
+    min-height: 390px;
+  }
+
+  .dealer-character {
+    transform: scale(.67);
+  }
+
+  .dealer-speech {
+    width: calc(100% - 30px);
+    top: 12px;
+  }
+
+  .shuffle-indicator {
+    display: none;
+  }
+
+  .selection-panel,
+  .bet-panel {
+    padding: 18px;
+  }
+
+  .rank-grid {
+    grid-template-columns:
+      repeat(5, 1fr);
+  }
+
+  .table-card-area {
+    width: 150px;
+  }
+
+  .landed-card {
+    width: 39px;
+    height: 55px;
+    padding: 4px;
+  }
+
+  .landed-card strong {
+    font-size: 16px;
+  }
+
+  .felt-table {
+    height: 410px;
+  }
+
+  .ai-label {
+    left: 20px;
+  }
+
+  .player-label {
+    right: 20px;
+  }
+
+  .result-banner {
+    flex-wrap: wrap;
+  }
+
+  .result-banner .primary-game-button {
+    width: 100%;
+    margin-left: 0;
+  }
+
+}
