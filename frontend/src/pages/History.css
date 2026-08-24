@@ -1,0 +1,948 @@
+/* =====================================================
+   AI CARD ARENA — HISTORY
+   Premium Game History UI
+   ===================================================== */
+
+.history-page {
+  min-height: 100vh;
+
+  color: #f4f2f8;
+
+  background:
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(130, 85, 230, 0.17),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 10% 70%,
+      rgba(35, 180, 225, 0.08),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #08090f 0%,
+      #06070c 100%
+    );
+
+  overflow-x: hidden;
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.history-header {
+  min-height: 84px;
+
+  padding: 0 5.5%;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 25px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  background:
+    rgba(7, 8, 13, 0.90);
+
+  backdrop-filter: blur(20px);
+
+  position: relative;
+
+  z-index: 5;
+}
+
+
+/* =====================================================
+   BACK
+   ===================================================== */
+
+.history-back {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  color: #858895;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+  transition: 0.25s ease;
+}
+
+.history-back:hover {
+  color: #ffffff;
+
+  transform: translateX(-3px);
+}
+
+
+/* =====================================================
+   BRAND
+   ===================================================== */
+
+.history-brand {
+  position: absolute;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.history-brand-icon {
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #bdbdbd
+    );
+
+  color: #08090d;
+
+  font-size: 24px;
+
+  font-weight: 900;
+}
+
+.history-brand strong,
+.history-brand span {
+  display: block;
+}
+
+.history-brand strong {
+  color: #c6a9ff;
+
+  font-size: 15px;
+
+  letter-spacing: 2px;
+}
+
+.history-brand span {
+  margin-top: 5px;
+
+  color: #707381;
+
+  font-size: 8px;
+
+  letter-spacing: 2px;
+}
+
+
+/* =====================================================
+   SECURITY
+   ===================================================== */
+
+.history-security {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 9px 12px;
+
+  border-radius: 10px;
+
+  color: #73dca0;
+
+  background:
+    rgba(70, 210, 125, 0.055);
+
+  border:
+    1px solid
+    rgba(70, 210, 125, 0.14);
+
+  font-size: 9px;
+
+  font-weight: 800;
+}
+
+
+/* =====================================================
+   MAIN
+   ===================================================== */
+
+.history-main {
+  width: min(
+    1200px,
+    calc(100% - 60px)
+  );
+
+  margin: 0 auto;
+
+  padding:
+    70px 0
+    90px;
+}
+
+
+/* =====================================================
+   TITLE
+   ===================================================== */
+
+.history-title {
+  margin-bottom: 35px;
+}
+
+.history-title > span {
+  color: #9c7bda;
+
+  font-size: 9px;
+
+  letter-spacing: 2.7px;
+
+  font-weight: 800;
+}
+
+.history-title h1 {
+  margin:
+    12px 0
+    14px;
+
+  font-size:
+    clamp(
+      43px,
+      5vw,
+      65px
+    );
+
+  line-height: 0.98;
+
+  letter-spacing: -2.7px;
+
+  font-weight: 900;
+}
+
+.history-title h1 strong {
+  margin-left: 15px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #b18aff,
+      #68d5ff
+    );
+
+  -webkit-background-clip: text;
+
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+}
+
+.history-title p {
+  margin: 0;
+
+  color: #80838f;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* =====================================================
+   STATS
+   ===================================================== */
+
+.history-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 15px;
+
+  margin-bottom: 25px;
+}
+
+.history-stat-card {
+  min-height: 100px;
+
+  padding: 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  box-sizing: border-box;
+
+  border-radius: 15px;
+
+  background:
+    rgba(15, 16, 23, 0.90);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+}
+
+.history-stat-icon {
+  width: 45px;
+  height: 45px;
+
+  flex-shrink: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 12px;
+
+  color: #a98af0;
+
+  background:
+    rgba(150, 105, 255, 0.08);
+}
+
+.win-icon {
+  color: #70dfa0;
+
+  background:
+    rgba(70, 215, 125, 0.08);
+}
+
+.loss-icon {
+  color: #f07d87;
+
+  background:
+    rgba(240, 80, 95, 0.08);
+}
+
+.history-stat-card span {
+  display: block;
+
+  color: #6c707c;
+
+  font-size: 7px;
+
+  letter-spacing: 1.7px;
+
+  font-weight: 800;
+}
+
+.history-stat-card strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #e5e2eb;
+
+  font-size: 25px;
+}
+
+
+/* =====================================================
+   HISTORY SECTION
+   ===================================================== */
+
+.history-section {
+  padding: 27px;
+
+  border-radius: 20px;
+
+  background:
+    rgba(15, 16, 23, 0.90);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  box-shadow:
+    0 20px 50px
+    rgba(0, 0, 0, 0.18);
+}
+
+.history-section-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 21px;
+}
+
+.history-section-heading span {
+  display: block;
+
+  color: #717482;
+
+  font-size: 8px;
+
+  letter-spacing: 2.2px;
+
+  font-weight: 800;
+}
+
+.history-section-heading h2 {
+  margin:
+    7px 0 0;
+
+  font-size: 22px;
+
+  letter-spacing: -0.5px;
+}
+
+.history-section-heading > svg {
+  color: #a482eb;
+}
+
+
+/* =====================================================
+   GAME LIST
+   ===================================================== */
+
+.history-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+
+/* =====================================================
+   GAME ROW
+   ===================================================== */
+
+.history-game {
+  min-height: 76px;
+
+  padding: 12px 15px;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(160px, 1fr)
+    130px
+    95px
+    90px;
+
+  align-items: center;
+
+  gap: 15px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.history-game:hover {
+  background:
+    rgba(150, 105, 255, 0.035);
+
+  border-color:
+    rgba(150, 105, 255, 0.13);
+}
+
+
+/* =====================================================
+   GAME ICON
+   ===================================================== */
+
+.history-game-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 12px;
+
+  background:
+    rgba(150, 105, 255, 0.08);
+
+  border:
+    1px solid
+    rgba(150, 105, 255, 0.12);
+
+  font-size: 20px;
+}
+
+
+/* =====================================================
+   DETAILS
+   ===================================================== */
+
+.history-game-details strong {
+  display: block;
+
+  color: #dedbe5;
+
+  font-size: 12px;
+}
+
+.history-game-details span {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #696d79;
+
+  font-size: 8px;
+}
+
+
+/* =====================================================
+   DATE
+   ===================================================== */
+
+.history-game-date > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: #9a96a5;
+
+  font-size: 9px;
+}
+
+.history-game-date > div svg {
+  color: #777a87;
+}
+
+.history-game-date > span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #555965;
+
+  font-size: 8px;
+}
+
+
+/* =====================================================
+   RESULT
+   ===================================================== */
+
+.history-result {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  font-size: 9px;
+
+  font-weight: 800;
+}
+
+.result-win {
+  color: #71dda0;
+}
+
+.result-loss {
+  color: #f17e88;
+}
+
+
+/* =====================================================
+   COINS
+   ===================================================== */
+
+.history-coins {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 5px;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+.coins-positive {
+  color: #e9bf54;
+}
+
+.coins-negative {
+  color: #e77c83;
+}
+
+
+/* =====================================================
+   INFO
+   ===================================================== */
+
+.history-info {
+  margin-top: 18px;
+
+  padding: 14px 16px;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 9px;
+
+  border-radius: 11px;
+
+  background:
+    rgba(75, 190, 230, 0.035);
+
+  border:
+    1px solid
+    rgba(75, 190, 230, 0.09);
+
+  color: #626875;
+
+  font-size: 9px;
+
+  line-height: 1.55;
+}
+
+.history-info svg {
+  flex-shrink: 0;
+
+  color: #56c8e7;
+}
+
+
+/* =====================================================
+   ACTIONS
+   ===================================================== */
+
+.history-actions {
+  margin-top: 20px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+.history-play {
+  min-height: 51px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 11px;
+
+  text-decoration: none;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  transition: 0.25s ease;
+}
+
+.history-play:hover {
+  transform: translateY(-3px);
+}
+
+.history-play.primary {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8d67df,
+      #6345ae
+    );
+
+  box-shadow:
+    0 10px 25px
+    rgba(115, 75, 205, 0.20);
+}
+
+.history-play.secondary {
+  color: #aaa1bc;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+}
+
+.history-play.secondary:hover {
+  color: #ffffff;
+
+  border-color:
+    rgba(160, 120, 255, 0.23);
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 950px) {
+
+  .history-main {
+    width: min(
+      760px,
+      calc(100% - 45px)
+    );
+  }
+
+  .history-game {
+    grid-template-columns:
+      48px
+      1fr
+      100px;
+  }
+
+  .history-game-date {
+    display: none;
+  }
+
+  .history-result {
+    justify-content: flex-end;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 650px) {
+
+  .history-header {
+    min-height: 72px;
+
+    padding:
+      0 4%;
+  }
+
+  .history-back span {
+    display: none;
+  }
+
+  .history-brand {
+    position: static;
+
+    transform: none;
+
+    gap: 8px;
+  }
+
+  .history-brand-icon {
+    width: 37px;
+    height: 37px;
+
+    border-radius: 10px;
+
+    font-size: 20px;
+  }
+
+  .history-brand strong {
+    font-size: 11px;
+
+    letter-spacing: 1.4px;
+  }
+
+  .history-brand span {
+    display: none;
+  }
+
+  .history-security {
+    padding: 8px;
+
+    font-size: 0;
+  }
+
+  .history-security svg {
+    width: 17px;
+    height: 17px;
+  }
+
+
+  /* MAIN */
+
+  .history-main {
+    width: calc(100% - 28px);
+
+    padding:
+      45px 0
+      65px;
+  }
+
+  .history-title h1 {
+    font-size: 43px;
+  }
+
+  .history-title h1 strong {
+    margin-left: 8px;
+  }
+
+
+  /* STATS */
+
+  .history-stats {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* SECTION */
+
+  .history-section {
+    padding: 20px;
+
+    border-radius: 17px;
+  }
+
+
+  /* ROW */
+
+  .history-game {
+    min-height: 72px;
+
+    grid-template-columns:
+      42px
+      1fr
+      auto;
+
+    gap: 11px;
+
+    padding: 11px;
+  }
+
+  .history-game-icon {
+    width: 40px;
+    height: 40px;
+
+    font-size: 18px;
+  }
+
+  .history-game-details strong {
+    font-size: 10px;
+  }
+
+  .history-result {
+    justify-content: flex-end;
+
+    font-size: 0;
+  }
+
+  .history-result svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .history-coins {
+    grid-column: 2 / 4;
+
+    justify-content: flex-start;
+
+    margin-top: -4px;
+  }
+
+
+  /* ACTIONS */
+
+  .history-actions {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+   ===================================================== */
+
+@media (max-width: 420px) {
+
+  .history-main {
+    width: calc(100% - 20px);
+  }
+
+  .history-title h1 {
+    font-size: 37px;
+  }
+
+  .history-section {
+    padding: 16px;
+  }
+
+  .history-section-heading h2 {
+    font-size: 19px;
+  }
+
+  .history-game-details span {
+    font-size: 7px;
+  }
+
+}
+
+
+/* =====================================================
+   VERY SMALL
+   ===================================================== */
+
+@media (max-width: 350px) {
+
+  .history-brand strong {
+    font-size: 9px;
+  }
+
+  .history-title h1 {
+    font-size: 33px;
+  }
+
+}

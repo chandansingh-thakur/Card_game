@@ -3,22 +3,32 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Wallet from "./pages/Wallet";
+import History from "./pages/History";
+
 import LuckDecider from "./pages/LuckDecider";
 import BadshahPakad from "./pages/BadshahPakad";
+
 
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
-        {/* LANDING */}
+        {/* ================= LANDING ================= */}
+
         <Route
           path="/"
           element={<Landing />}
         />
 
-        {/* AUTH */}
+
+        {/* ================= AUTH ================= */}
+
         <Route
           path="/login"
           element={<Login />}
@@ -29,13 +39,31 @@ function App() {
           element={<Register />}
         />
 
-        {/* DASHBOARD */}
+
+        {/* ================= USER ================= */}
+
         <Route
           path="/dashboard"
           element={<Dashboard />}
         />
 
-        {/* GAMES */}
+        <Route
+          path="/profile"
+          element={<Profile />}
+        />
+
+        <Route
+          path="/wallet"
+          element={<Wallet />}
+        />
+
+        <Route
+          path="/history"
+          element={<History />}
+        />
+
+
+        {/* ================= GAMES ================= */}
 
         <Route
           path="/games/luck-decider"
@@ -47,15 +75,19 @@ function App() {
           element={<BadshahPakad />}
         />
 
-        {/* FALLBACK */}
+
+        {/* ================= FALLBACK ================= */}
+
         <Route
           path="*"
           element={<Navigate to="/" replace />}
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 }
+
 
 export default App;

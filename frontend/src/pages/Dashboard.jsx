@@ -52,9 +52,12 @@ function Dashboard() {
 
         <div className="dashboard-nav-right">
 
-          {/* COINS */}
+          {/* ================= COINS ================= */}
 
-          <div className="wallet-pill">
+          <Link
+            to="/wallet"
+            className="wallet-pill"
+          >
 
             <Coins size={17} />
 
@@ -63,12 +66,15 @@ function Dashboard() {
               <strong>10,000</strong>
             </div>
 
-          </div>
+          </Link>
 
 
-          {/* DIAMONDS */}
+          {/* ================= DIAMONDS ================= */}
 
-          <div className="wallet-pill">
+          <Link
+            to="/wallet"
+            className="wallet-pill"
+          >
 
             <Gem size={17} />
 
@@ -77,10 +83,10 @@ function Dashboard() {
               <strong>250</strong>
             </div>
 
-          </div>
+          </Link>
 
 
-          {/* PROFILE */}
+          {/* ================= PROFILE ================= */}
 
           <Link
             to="/profile"
@@ -272,8 +278,6 @@ function Dashboard() {
               </div>
 
 
-              {/* GAME VISUAL */}
-
               <div className="game-visual team-visual">
 
                 <div className="empty-player-slot">
@@ -348,6 +352,8 @@ function Dashboard() {
         <section className="dashboard-bottom">
 
 
+          {/* GAMES PLAYED */}
+
           <div className="stats-card">
 
             <div className="stats-icon">
@@ -370,6 +376,8 @@ function Dashboard() {
 
 
 
+          {/* WINS */}
+
           <div className="stats-card">
 
             <div className="stats-icon">
@@ -391,6 +399,8 @@ function Dashboard() {
           </div>
 
 
+
+          {/* HISTORY */}
 
           <Link
             to="/history"
@@ -418,6 +428,8 @@ function Dashboard() {
           </Link>
 
 
+
+          {/* LOGOUT */}
 
           <button
             onClick={handleLogout}
