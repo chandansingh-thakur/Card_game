@@ -5,25 +5,49 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import LuckDecider from "./pages/LuckDecider";
+import BadshahPakad from "./pages/BadshahPakad";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<Landing />} />
+        {/* LANDING */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
 
-        <Route path="/login" element={<Login />} />
+        {/* AUTH */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* DASHBOARD */}
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+        {/* GAMES */}
 
         <Route
           path="/games/luck-decider"
           element={<LuckDecider />}
         />
 
+        <Route
+          path="/games/badshah-pakad"
+          element={<BadshahPakad />}
+        />
+
+        {/* FALLBACK */}
         <Route
           path="*"
           element={<Navigate to="/" replace />}

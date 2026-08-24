@@ -28,7 +28,10 @@ function Dashboard() {
 
       <nav className="dashboard-nav">
 
-        <Link to="/dashboard" className="dashboard-brand">
+        <Link
+          to="/dashboard"
+          className="dashboard-brand"
+        >
 
           <div className="dashboard-brand-icon">
             ♠
@@ -79,7 +82,10 @@ function Dashboard() {
 
           {/* PROFILE */}
 
-          <Link to="/profile" className="profile-button">
+          <Link
+            to="/profile"
+            className="profile-button"
+          >
             <User size={18} />
           </Link>
 
@@ -92,7 +98,8 @@ function Dashboard() {
 
       <main className="dashboard-main">
 
-        {/* WELCOME */}
+
+        {/* ================= WELCOME ================= */}
 
         <section className="dashboard-welcome">
 
@@ -116,10 +123,15 @@ function Dashboard() {
           </div>
 
 
-          <div className="player-badge">
+          {/* PROFILE PREVIEW */}
+
+          <Link
+            to="/profile"
+            className="player-badge"
+          >
 
             <div className="player-avatar">
-              A
+              <User size={19} />
             </div>
 
             <div>
@@ -127,14 +139,15 @@ function Dashboard() {
               <span>PLAYER</span>
 
               <strong>
-                Amit
+                Your Profile
               </strong>
 
             </div>
 
-          </div>
+          </Link>
 
         </section>
+
 
 
         {/* ================= GAME CARDS ================= */}
@@ -155,6 +168,7 @@ function Dashboard() {
 
             </div>
 
+
             <div className="virtual-badge">
               <ShieldCheck size={14} />
               Virtual Gameplay
@@ -163,9 +177,11 @@ function Dashboard() {
           </div>
 
 
+
           <div className="game-grid">
 
-            {/* LUCK DECIDER */}
+
+            {/* ================= LUCK DECIDER ================= */}
 
             <div className="game-card luck-game">
 
@@ -222,6 +238,7 @@ function Dashboard() {
                     Demo Coins
                   </span>
 
+
                   <Link
                     to="/games/luck-decider"
                     className="play-button"
@@ -237,7 +254,8 @@ function Dashboard() {
             </div>
 
 
-            {/* BADSHAH PAKAD */}
+
+            {/* ================= BADSHAH PAKAD ================= */}
 
             <div className="game-card badshah-game">
 
@@ -254,22 +272,24 @@ function Dashboard() {
               </div>
 
 
+              {/* GAME VISUAL */}
+
               <div className="game-visual team-visual">
 
-                <div className="player-chip chip-one">
-                  A
+                <div className="empty-player-slot">
+                  <UsersIcon />
                 </div>
 
-                <div className="player-chip chip-two">
-                  K
+                <div className="empty-player-slot">
+                  <UsersIcon />
                 </div>
 
-                <div className="player-chip chip-three">
-                  C
+                <div className="empty-player-slot">
+                  <UsersIcon />
                 </div>
 
-                <div className="player-chip chip-four">
-                  R
+                <div className="empty-player-slot">
+                  <UsersIcon />
                 </div>
 
                 <div className="king-card">
@@ -302,6 +322,7 @@ function Dashboard() {
                     Demo Coins
                   </span>
 
+
                   <Link
                     to="/games/badshah-pakad"
                     className="play-button"
@@ -321,9 +342,11 @@ function Dashboard() {
         </section>
 
 
+
         {/* ================= STATS ================= */}
 
         <section className="dashboard-bottom">
+
 
           <div className="stats-card">
 
@@ -346,6 +369,7 @@ function Dashboard() {
           </div>
 
 
+
           <div className="stats-card">
 
             <div className="stats-icon">
@@ -365,6 +389,7 @@ function Dashboard() {
             </div>
 
           </div>
+
 
 
           <Link
@@ -393,12 +418,16 @@ function Dashboard() {
           </Link>
 
 
+
           <button
             onClick={handleLogout}
             className="logout-button"
           >
+
             <LogOut size={17} />
+
             Logout
+
           </button>
 
         </section>
@@ -408,5 +437,20 @@ function Dashboard() {
     </div>
   );
 }
+
+
+/* =========================
+   EMPTY PLAYER ICON
+========================= */
+
+function UsersIcon() {
+  return (
+    <User
+      size={17}
+      strokeWidth={1.7}
+    />
+  );
+}
+
 
 export default Dashboard;
