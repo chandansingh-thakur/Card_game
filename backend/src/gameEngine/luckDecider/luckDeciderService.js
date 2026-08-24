@@ -1,55 +1,44 @@
-const crypto = require("crypto");
+const Game = require("../../models/game");
 
 const {
   createDeck,
   shuffleDeck,
 } = require("./deck");
 
-const games = new Map();
-
-const createGame = (userId) => {
-  const gameId = crypto.randomUUID();
-
+// Start a new Luck Decider game
+const createGame = async (userId) => {
   const deck = shuffleDeck(createDeck());
 
-  const game = {
-    gameId,
+  const game = await Game.create({
     userId,
+    gameType: "luck-decider",
+    status: "waiting_for_bet",
     deck,
-
-    // Player has not selected a card yet
-    selectedCard: null,
-
-    // Cards revealed during the game
-    playerCard: null,
-    aiCard: null,
-
-    status: "waiting_for_selection",
-
-    createdAt: new Date(),
-  };
-
-  games.set(gameId, game);
+  });
 
   return {
-    gameId,
+    gameId: game._id,
     status: game.status,
   };
 };
 
-const getGame = (gameId) => {
-  return games.get(gameId);
+// Get user's game
+const getGame = async (gameId, userId) => {
+  const game = await Game.findOne({
+    _id: gameId,
+    userId,
+    gameType: "luck-decider",
+  });
+
+  return game;
 };
 
-const selectCard = (gameId, userId, cardId) => {
-  const game = games.get(gameId);
+// Select a card
+const selectCard = async (gameId, userId, cardId) => {
+  const game = await getGame(gameId, userId);
 
   if (!game) {
     throw new Error("Game not found");
-  }
-
-  if (game.userId !== userId) {
-    throw new Error("You are not allowed to access this game");
   }
 
   if (game.status !== "waiting_for_selection") {
@@ -64,14 +53,19 @@ const selectCard = (gameId, userId, cardId) => {
     throw new Error("Invalid card selection");
   }
 
-  game.selectedCard = selectedCard;
+  game.selectedCard = {
+    id: selectedCard.id,
+    suit: selectedCard.suit,
+    rank: selectedCard.rank,
+  };
+
   game.status = "ready_to_reveal";
 
-  return {
-    gameId: game.gameId,
-    status: game.status,
+  await game.save();
 
-    // Don't reveal the actual card yet
+  return {
+    gameId: game._id,
+    status: game.status,
     selectedCard: {
       id: selectedCard.id,
       suit: selectedCard.suit,
