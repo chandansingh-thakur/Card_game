@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const luckDeciderRoutes = require("./routes/luckDeciderRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -12,7 +13,10 @@ app.use(express.json());
 app.use("/api/wallet", walletRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
-
+app.use(
+  "/api/luck-decider",
+  luckDeciderRoutes
+);
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
